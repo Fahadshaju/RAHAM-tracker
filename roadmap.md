@@ -16,5 +16,11 @@
 - [ ] Deploy on Vercel: user chose assisted deployment; waiting for a Vercel token through the secure form.
 - [x] Remove the visible Lovable sign-in option and all Lovable brand marks, including the browser-tab icon.
 - [x] Create and apply a unique RAHAM logo and matching browser-tab icon.
-- [x] Google sign-in shown only where it works (Lovable-hosted addresses); email sign-in everywhere.
+- [x] Google sign-up and sign-in restored on both account modes and all hostnames; Google provider confirmed enabled.
+- [x] Sign-up/sign-in screens: Google is the primary option ("Sign up with Google" / "Sign in with Google"); email stays available behind "Sign up with email instead". Reset and password-change screens still open with their fields. Verified in the browser.
 - [x] Use the user-supplied crescent RAHAM logo.
+- [x] Email sign-in verified end to end: correct password opens the private app, wrong password is rejected, sign-out returns to the public view. Email confirmation kept on, as chosen.
+
+## Open
+- [ ] Sync the newest commits to https://github.com/Fahadshaju/RAHAM-tracker: no GitHub access is available in this session, so the repo still has the earlier push.
+- [ ] Complete a real Google sign-in: the button is verified in both modes, but the hosted preview is behind Lovable's login wall and localhost has no OAuth proxy, so the Google redirect and returning session remain unverified.

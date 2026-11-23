@@ -47,7 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 export const useMizanAuth = () => useContext(AuthContext);
 function GoogleMark() {
   return (
-    <svg aria-hidden="true" viewBox="0 0 24 24">
+    <svg aria-hidden="true" viewBox="0 0 24 24" style={{ width: 18, height: 18 }}>
       <path
         fill="#4285F4"
         d="M23.49 12.27c0-.79-.07-1.54-.19-2.27H12v4.51h6.47c-.29 1.48-1.14 2.73-2.4 3.58v3h3.86c2.26-2.09 3.56-5.17 3.56-8.82z"
@@ -78,18 +78,16 @@ export function AuthDialog({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
+  const [emailOpen, setEmailOpen] = useState(false);
   const { user } = useMizanAuth();
-  // Google sign-in runs through the Lovable sign-in service, which only exists on Lovable-hosted
-  // addresses; elsewhere (Vercel, localhost) hide it so people use email instead of a dead button.
-  const [googleAvailable, setGoogleAvailable] = useState(false);
-  useEffect(() => {
-    const h = window.location.hostname;
-    setGoogleAvailable(/(^|\.)(lovable\.app|lovableproject\.com)$/.test(h));
-  }, []);
   useEffect(() => {
     const hash = window.location.hash;
     if (hash.includes("type=recovery")) setMode("password");
   }, []);
+  useEffect(() => {
+    setEmailOpen(false);
+  }, [mode]);
+  const showEmailForm = mode === "reset" || mode === "password" || emailOpen;
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
@@ -129,6 +127,17 @@ export function AuthDialog({
   async function social(provider: "google") {
     setBusy(true);
     try {
+      const host = window.location.hostname;
+      const lovableHosted = host.endsWith(".lovable.app") || host.endsWith(".lovableproject.com");
+      if (!lovableHosted) {
+        // Off Lovable hosting (e.g. Vercel) the managed broker is unavailable; use direct OAuth.
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider,
+          options: { redirectTo: window.location.origin },
+        });
+        if (error) throw error;
+        return;
+      }
       const result = await lovable.auth.signInWithOAuth(provider, {
         redirect_uri: window.location.origin,
       });
@@ -171,18 +180,51 @@ export function AuthDialog({
           </Button>
         ) : (
           <>
-            {googleAvailable && (mode === "signin" || mode === "signup") && (
+            {(mode === "signin" || mode === "signup") && (
               <div className="grid gap-3">
-                <Button variant="google" onClick={() => void social("google")} disabled={busy}>
+                <Button
+                  type="button"
+                  variant="google"
+                  className="mizan-button-glow h-11 w-full gap-2.5 px-3 text-sm"
+                  onClick={() => void social("google")}
+                  disabled={busy}
+                >
                   <GoogleMark />
-                  Continue with Google
+                  {busy
+                    ? "Connecting to Google…"
+                    : mode === "signup"
+                      ? "Sign up with Google"
+                      : "Sign in with Google"}
                 </Button>
-                <div className="text-center text-xs text-muted-foreground py-1">
-                  or continue with email
-                </div>
+                <p className="-mt-1 text-center text-xs text-muted-foreground">
+                  {mode === "signup"
+                    ? "Fastest way in — no password, no confirmation email."
+                    : "The quickest way back into your RAHAM."}
+                </p>
+                {!emailOpen && (
+                  <div className="flex items-center gap-3 py-1">
+                    <span className="h-px flex-1 bg-border" />
+                    <span className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                      or
+                    </span>
+                    <span className="h-px flex-1 bg-border" />
+                  </div>
+                )}
+                {!emailOpen && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => setEmailOpen(true)}
+                  >
+                    {mode === "signup" ? "Sign up with email instead" : "Sign in with email instead"}
+                  </Button>
+                )}
               </div>
             )}
-            <form onSubmit={(e) => void submit(e)} className="grid gap-3">
+            {showEmailForm && (
+              <form onSubmit={(e) => void submit(e)} className="grid gap-3">
               {mode !== "password" && (
                 <label className="grid gap-2 text-xs">
                   Email
@@ -221,7 +263,8 @@ export function AuthDialog({
                         ? "Update password"
                         : "Sign in"}
               </Button>
-            </form>
+              </form>
+            )}
             <div className="flex justify-between">
               <Button
                 size="sm"
