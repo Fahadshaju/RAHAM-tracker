@@ -79,6 +79,13 @@ export function AuthDialog({
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const { user } = useMizanAuth();
+  // Google sign-in runs through the Lovable sign-in service, which only exists on Lovable-hosted
+  // addresses; elsewhere (Vercel, localhost) hide it so people use email instead of a dead button.
+  const [googleAvailable, setGoogleAvailable] = useState(false);
+  useEffect(() => {
+    const h = window.location.hostname;
+    setGoogleAvailable(/(^|\.)(lovable\.app|lovableproject\.com)$/.test(h));
+  }, []);
   useEffect(() => {
     const hash = window.location.hash;
     if (hash.includes("type=recovery")) setMode("password");
@@ -164,7 +171,7 @@ export function AuthDialog({
           </Button>
         ) : (
           <>
-            {(mode === "signin" || mode === "signup") && (
+            {googleAvailable && (mode === "signin" || mode === "signup") && (
               <div className="grid gap-3">
                 <Button variant="google" onClick={() => void social("google")} disabled={busy}>
                   <GoogleMark />

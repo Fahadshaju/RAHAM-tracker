@@ -16,3 +16,5 @@
 - [ ] Deploy on Vercel: user chose assisted deployment; waiting for a Vercel token through the secure form.
 - [x] Remove the visible Lovable sign-in option and all Lovable brand marks, including the browser-tab icon.
 - [x] Create and apply a unique RAHAM logo and matching browser-tab icon.
+- [x] Google sign-in shown only where it works (Lovable-hosted addresses); email sign-in everywhere.
+- [x] Use the user-supplied crescent RAHAM logo.
