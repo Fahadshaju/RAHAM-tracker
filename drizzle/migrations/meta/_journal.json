@@ -1,0 +1,20 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1795440896233,
+      "tag": "0000_mizan_private_journal",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1795441323436,
+      "tag": "0001_mizan_calendar_and_proof",
+      "breakpoints": true
+    }
+  ]
+}

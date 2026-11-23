@@ -1,0 +1,16 @@
+CREATE TABLE public.mizan_days (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), user_id uuid NOT NULL, day date NOT NULL, data jsonb NOT NULL DEFAULT '{}'::jsonb, updated_at timestamptz NOT NULL DEFAULT now(), UNIQUE(user_id, day));
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.mizan_days TO authenticated;
+GRANT ALL ON public.mizan_days TO service_role;
+ALTER TABLE public.mizan_days ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Own daily journal" ON public.mizan_days FOR ALL TO authenticated USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+CREATE TABLE public.mizan_roadmaps (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), user_id uuid NOT NULL, title text NOT NULL, data jsonb NOT NULL, created_at timestamptz NOT NULL DEFAULT now());
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.mizan_roadmaps TO authenticated;
+GRANT ALL ON public.mizan_roadmaps TO service_role;
+ALTER TABLE public.mizan_roadmaps ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Own learning roadmaps" ON public.mizan_roadmaps FOR ALL TO authenticated USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+CREATE TABLE public.mizan_samples (id text PRIMARY KEY, data jsonb NOT NULL);
+GRANT SELECT ON public.mizan_samples TO anon, authenticated;
+GRANT ALL ON public.mizan_samples TO service_role;
+ALTER TABLE public.mizan_samples ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Read sample journal" ON public.mizan_samples FOR SELECT TO anon, authenticated USING (true);
+INSERT INTO public.mizan_samples (id, data) VALUES ('daily', '{"istighfar":750,"target":1000,"workMinutes":210,"exerciseMinutes":25,"guardrails":[true,true,true,true,false,true,true],"prayers":[{"name":"Tahajjud","time":"04:40","status":"On time"},{"name":"Fajr","time":"05:12","status":"On time"},{"name":"Dhuhr","time":"12:35","status":"On time"},{"name":"Asr","time":"15:48","status":"Pending"},{"name":"Maghrib","time":"18:05","status":"Pending"},{"name":"Isha","time":"19:20","status":"Pending"}]}'::jsonb);
