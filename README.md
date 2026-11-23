@@ -17,7 +17,7 @@ Built with React 19, TanStack Start, Tailwind 4, and Lovable Cloud. Server funct
 
 ## Data and accounts
 
-The public index shows clearly labelled sample data. Sign in with Google, Lovable, or email/password to start a fresh private journal. Email signups require confirmation. Journals, targets and roadmaps use owner-scoped policies. Fajr proof is stored in a private 10 MB image bucket. Photos are manually logged evidence, not automatically verified.
+The public index shows clearly labelled sample data. Sign in with Google or email/password to start a fresh private journal. Email signups require confirmation. Journals, targets and roadmaps use owner-scoped policies. Fajr proof is stored in a private 10 MB image bucket. Photos are manually logged evidence, not automatically verified.
 
 The migrations include a literal sample-journal seed. JSON export is available from the toolbar and consistency view. Markdown and complete downloadable PDF exports are available on a roadmap, including all phases, source links, practice, checkpoints, schedule, glossary, and capstone.
 

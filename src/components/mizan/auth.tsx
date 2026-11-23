@@ -11,7 +11,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { lovable } from "@/integrations/lovable";
-import { LovableMark } from "@lovable.dev/cloud-auth-js/react";
 import { toast } from "sonner";
 
 const AuthContext = createContext<{ user: User | null; ready: boolean }>({
@@ -112,7 +111,7 @@ export function AuthDialog({
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         onOpenChange(false);
-        toast.success("Your private Mizan is ready.");
+        toast.success("Your private RAHAM is ready.");
       }
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Sign-in failed.");
@@ -120,7 +119,7 @@ export function AuthDialog({
       setBusy(false);
     }
   }
-  async function social(provider: "google" | "lovable") {
+  async function social(provider: "google") {
     setBusy(true);
     try {
       const result = await lovable.auth.signInWithOAuth(provider, {
@@ -142,12 +141,12 @@ export function AuthDialog({
             {user
               ? "Your account"
               : mode === "signup"
-                ? "Begin your Mizan"
+                ? "Begin your RAHAM"
                 : mode === "reset"
                   ? "Reset your password"
                   : mode === "password"
                     ? "Choose a new password"
-                    : "Return to your Mizan"}
+                    : "Return to your RAHAM"}
           </DialogTitle>
           <DialogDescription>
             {user ? user.email : "Your journal and prayer proof stay private."}
@@ -170,10 +169,6 @@ export function AuthDialog({
                 <Button variant="google" onClick={() => void social("google")} disabled={busy}>
                   <GoogleMark />
                   Continue with Google
-                </Button>
-                <Button variant="outline" onClick={() => void social("lovable")} disabled={busy}>
-                  <LovableMark />
-                  Continue with Lovable
                 </Button>
                 <div className="text-center text-xs text-muted-foreground py-1">
                   or continue with email

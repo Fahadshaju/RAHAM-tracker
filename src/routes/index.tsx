@@ -23,7 +23,7 @@ import { Button } from "@/components/ui/button";
 import { getSampleDay } from "@/lib/mizan.functions";
 import { useMizanJournal } from "@/hooks/use-mizan-journal";
 import { AuthDialog } from "@/components/mizan/auth";
-import { MizanMark } from "@/components/mizan/shared";
+import { RahamLogo } from "@/components/mizan/shared";
 import { Daily } from "@/components/mizan/daily";
 import { Analytics } from "@/components/mizan/analytics";
 import { Roadmaps } from "@/components/mizan/roadmaps";
@@ -105,7 +105,7 @@ function Index() {
       <aside className="mizan-sidebar">
         <div className="sidebar-brand">
           <div className="flex items-center gap-3">
-            <MizanMark />
+            <RahamLogo />
             <span className="brand-word">
               RAHAM
               <span className="block text-[9px] font-sans font-normal text-muted-foreground mt-1">

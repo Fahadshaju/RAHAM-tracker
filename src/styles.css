@@ -220,8 +220,10 @@
   letter-spacing: -0.02em;
 }
 .brand-mark {
+  display: block;
   width: 42px;
   height: 42px;
+  object-fit: contain;
   color: var(--violet-soft);
 }
 .mizan-nav-button {

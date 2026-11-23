@@ -1,22 +1,9 @@
 import { type ReactNode } from "react";
 import { Sparkles } from "lucide-react";
-export function MizanMark() {
-  return (
-    <svg className="brand-mark" viewBox="0 0 48 48" fill="none" aria-hidden="true">
-      <path
-        d="M24 3 30 12 41 10 39 21 45 24 39 30 41 41 30 39 24 45 18 39 7 41 9 30 3 24 9 18 7 7 18 9Z"
-        stroke="currentColor"
-        strokeWidth="1.2"
-      />
-      <path d="m24 10 14 14-14 14-14-14Z" stroke="currentColor" strokeWidth=".8" />
-      <path
-        d="M24 16v17M17 20h14M17 20l-5 8h10l-5-8Zm14 0-5 8h10l-5-8ZM19 34h10"
-        stroke="currentColor"
-        strokeWidth="1.3"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
+import rahamLogo from "@/assets/raham-logo.png";
+
+export function RahamLogo() {
+  return <img className="brand-mark" src={rahamLogo} alt="" aria-hidden="true" />;
 }
 export function Panel({
   title,
