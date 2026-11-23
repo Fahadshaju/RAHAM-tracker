@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import {
@@ -29,6 +29,7 @@ import { Analytics } from "@/components/mizan/analytics";
 import { Roadmaps } from "@/components/mizan/roadmaps";
 import { Calendar } from "@/components/mizan/calendar";
 import { Plan } from "@/components/mizan/plan";
+import { JournalGarden } from "@/components/garden/journal-garden";
 import { downloadFile } from "@/lib/mizan";
 
 const sampleOptions = queryOptions({
@@ -128,6 +129,10 @@ function Index() {
               {t.name}
             </Button>
           ))}
+          <Link to="/garden" className="garden-nav-link">
+            <Sparkles size={17} />
+            Jannat Garden
+          </Link>
         </nav>
         <div className="sidebar-bottom mt-auto">
           <div className="border-t border-border pt-6 px-2 pb-6">
@@ -284,6 +289,7 @@ function Index() {
           ) : (
             <>
               <div hidden={tab !== "daily"}>
+                <JournalGarden history={journal.history} date={date} />
                 <Daily
                   journal={journal}
                   onAuth={() => setAuthOpen(true)}

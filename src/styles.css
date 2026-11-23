@@ -889,3 +889,45 @@ body::before {
   .plan-row { animation: none; }
   .panel:hover { transform: none; }
 }
+
+/* ── Jannat garden page ── */
+.garden-page { position: fixed; inset: 0; background: oklch(0.12 0.03 300); overflow: hidden; }
+.garden-canvas { position: absolute; inset: 0; touch-action: none; animation: garden-fade 1.2s ease both; }
+.garden-glass {
+  background: oklch(0.16 0.03 300 / 0.55); color: var(--foreground);
+  backdrop-filter: blur(18px) saturate(1.3); -webkit-backdrop-filter: blur(18px) saturate(1.3);
+  border: 1px solid oklch(0.78 0.125 86 / 0.3); border-radius: 18px;
+  box-shadow: 0 20px 50px oklch(0.2 0.05 300 / 0.35);
+}
+.garden-panel { position: absolute; top: 16px; left: 16px; width: min(340px, calc(100vw - 32px)); padding: 16px; max-height: calc(100dvh - 32px); display: flex; flex-direction: column; }
+.garden-body { overflow: auto; transition: max-height .4s ease, opacity .3s ease; max-height: 60vh; }
+.garden-panel[data-open="false"] .garden-body { max-height: 0; opacity: 0; }
+.garden-title { font-family: "Cormorant Garamond", Georgia, serif; font-size: 22px; font-weight: 600; color: var(--gold); letter-spacing: .02em; }
+.garden-counter { font-size: 12px; margin-top: 10px; }
+.garden-sub { font-size: 10.5px; color: var(--muted-foreground); margin-top: 6px; line-height: 1.5; }
+.garden-bar { height: 5px; border-radius: 99px; background: oklch(1 0 0 / 0.12); margin-top: 8px; overflow: hidden; }
+.garden-bar span { display: block; height: 100%; background: var(--gold); transition: width .8s cubic-bezier(.2,.8,.2,1); }
+.garden-input { flex: 1; min-width: 0; background: oklch(1 0 0 / 0.08); border: 1px solid oklch(1 0 0 / 0.14); border-radius: 10px; padding: 9px 11px; font-size: 13px; color: inherit; outline: none; }
+.garden-input:focus { border-color: var(--gold); }
+.garden-icon { display: grid; place-items: center; min-width: 36px; height: 36px; border-radius: 10px; color: inherit; background: oklch(1 0 0 / 0.06); transition: background .2s; }
+.garden-icon:hover { background: oklch(1 0 0 / 0.14); }
+.garden-icon.gold { background: var(--gold); color: oklch(0.2 0.03 300); }
+.garden-icon.small { min-width: 30px; height: 30px; background: transparent; }
+.garden-list { margin-top: 12px; display: grid; gap: 6px; }
+.garden-task { display: flex; align-items: center; gap: 8px; font-size: 13px; padding: 6px 6px 6px 10px; border-radius: 10px; background: oklch(1 0 0 / 0.05); animation: garden-in .35s ease both; }
+.garden-task[data-done="true"] span { text-decoration: line-through; color: var(--muted-foreground); }
+.garden-check { width: 22px; height: 22px; flex-shrink: 0; border-radius: 7px; border: 1.5px solid var(--gold); display: grid; place-items: center; color: oklch(0.2 0.03 300); }
+.garden-task[data-done="true"] .garden-check { background: var(--gold); }
+.garden-link { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted-foreground); padding: 6px 2px; }
+.garden-link:hover { color: var(--gold); }
+.garden-hint { position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%); font-size: 11px; color: oklch(0.8 0.03 300 / 0.7); white-space: nowrap; pointer-events: none; }
+.garden-toast { position: absolute; top: 22%; left: 50%; transform: translateX(-50%); font-family: "Cormorant Garamond", Georgia, serif; font-size: clamp(24px, 5vw, 40px); color: var(--gold); text-shadow: 0 0 30px oklch(0.9 0.12 86 / 0.9); pointer-events: none; animation: garden-level 3.2s ease both; }
+@keyframes garden-fade { from { opacity: 0 } }
+@keyframes garden-in { from { opacity: 0; transform: translateY(6px) } }
+@keyframes garden-level { 0% { opacity: 0; transform: translate(-50%, 20px) scale(.9) } 15%, 75% { opacity: 1; transform: translate(-50%, 0) scale(1) } 100% { opacity: 0; transform: translate(-50%, -20px) } }
+@media (max-width: 640px) { .garden-panel { top: auto; bottom: 40px; left: 12px; right: 12px; width: auto; } .garden-body { max-height: 38vh; } .garden-hint { font-size: 9.5px; bottom: 12px; } }
+.garden-nav-link { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; font-size: 13px; color: var(--gold); border: 1px solid oklch(0.78 0.125 86 / 0.3); }
+.garden-nav-link:hover { background: oklch(0.78 0.125 86 / 0.1); }
+.journal-garden { position: relative; overflow: hidden; }
+.journal-garden-canvas { height: clamp(320px, 52vh, 520px); touch-action: none; animation: garden-fade 1.2s ease both; }
+.journal-garden-hud { position: absolute; left: 14px; bottom: 14px; display: grid; gap: 6px; padding: 10px 12px; border-radius: 12px; background: oklch(0.12 0.03 300 / 0.6); backdrop-filter: blur(12px); border: 1px solid oklch(0.78 0.125 86 / 0.25); pointer-events: none; }

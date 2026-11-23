@@ -10,11 +10,17 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as GardenRouteImport } from './routes/garden'
 import { Route as ApiPublicOauthGoogleReturnRouteImport } from './routes/api.public.oauth.google.return'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GardenRoute = GardenRouteImport.update({
+  id: '/garden',
+  path: '/garden',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicOauthGoogleReturnRoute =
@@ -26,27 +32,31 @@ const ApiPublicOauthGoogleReturnRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/garden': typeof GardenRoute
   '/api/public/oauth/google/return': typeof ApiPublicOauthGoogleReturnRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/garden': typeof GardenRoute
   '/api/public/oauth/google/return': typeof ApiPublicOauthGoogleReturnRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/garden': typeof GardenRoute
   '/api/public/oauth/google/return': typeof ApiPublicOauthGoogleReturnRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/public/oauth/google/return'
+  fullPaths: '/' | '/garden' | '/api/public/oauth/google/return'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/public/oauth/google/return'
-  id: '__root__' | '/' | '/api/public/oauth/google/return'
+  to: '/' | '/garden' | '/api/public/oauth/google/return'
+  id: '__root__' | '/' | '/garden' | '/api/public/oauth/google/return'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  GardenRoute: typeof GardenRoute
   ApiPublicOauthGoogleReturnRoute: typeof ApiPublicOauthGoogleReturnRoute
 }
 
@@ -57,6 +67,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/garden': {
+      id: '/garden'
+      path: '/garden'
+      fullPath: '/garden'
+      preLoaderRoute: typeof GardenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/oauth/google/return': {
@@ -71,6 +88,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  GardenRoute: GardenRoute,
   ApiPublicOauthGoogleReturnRoute: ApiPublicOauthGoogleReturnRoute,
 }
 export const routeTree = rootRouteImport
