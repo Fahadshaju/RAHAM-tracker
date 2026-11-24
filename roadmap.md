@@ -1,6 +1,8 @@
 # Roadmap
 
 ## Done
+- [x] Repeating targets across selected months, stacked daily sections, and an auto-expanding desktop sidebar; private saves and independent daily completion verified after refresh.
+- [x] Enlarge text and open up workspace spacing, with roomier rows and phone-friendly layouts.
 - [x] Year view: month names above the grid; unlogged days no longer shaded (only progress shows). Month calendar untouched.
 - [x] New tab "My plan": fill in task name + timings, saved as the day's task list.
 - [x] Daily view: targets list with tick-to-complete; old istighfar/dhikr counters removed.

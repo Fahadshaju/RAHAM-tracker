@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Check, Clock, Plus, Trash2, ListChecks } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Panel, ProgressLine } from "./shared";
-import { taskIsDone, type Day } from "@/lib/mizan";
+import { repeatDates, taskIsDone, type RepeatPlan, type Day } from "@/lib/mizan";
 import { toast } from "sonner";
 
 /**
@@ -13,19 +13,28 @@ export function Plan({
   day,
   update,
   sample,
+  date,
+  repeat,
 }: {
   day: Day;
   update: (day: Day) => void | Promise<void>;
   sample: boolean;
+  date: string;
+  repeat: (plan: RepeatPlan) => Promise<number>;
 }) {
   const [name, setName] = useState("");
   const [from, setFrom] = useState("08:00");
   const [to, setTo] = useState("09:00");
   const [countTo, setCountTo] = useState("");
+  const [repeating, setRepeating] = useState(false);
+  const [startMonth, setStartMonth] = useState(date.slice(0, 7));
+  const [endMonth, setEndMonth] = useState(date.slice(0, 7));
+  const [frequency, setFrequency] = useState<RepeatPlan["frequency"]>("daily");
+  const [busy, setBusy] = useState(false);
   const tasks = day.tasks;
   const done = tasks.filter(taskIsDone).length;
 
-  function add() {
+  async function add() {
     const label = name.trim();
     if (!label) {
       toast.error("Write what you intend to do first.");
@@ -40,16 +49,23 @@ export function Plan({
       toast.error("The number should be a whole number of 1 or more.");
       return;
     }
-    void update({
-      ...day,
-      tasks: [
-        ...tasks,
-        { id: crypto.randomUUID(), name: label, from, to, done: false, count: 0, countTo: number },
-      ],
-    });
-    setName("");
-    setCountTo("");
-    toast.success(`${label} added to today.`);
+    const task = { id: crypto.randomUUID(), name: label, from, to, done: false, count: 0, countTo: number };
+    setBusy(true);
+    try {
+      if (repeating) {
+        const plan = { task, startMonth, endMonth, frequency };
+        repeatDates(plan);
+        const total = await repeat(plan);
+        toast.success(`${label} scheduled for ${total} days${sample ? " in your sample workspace" : ""}.`);
+      } else {
+        await update({ ...day, tasks: [...tasks, task] });
+        toast.success(`${label} added to ${date}.`);
+      }
+      setName("");
+      setCountTo("");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Your plan could not be saved. Try again.");
+    } finally { setBusy(false); }
   }
 
   function patch(id: string, next: Partial<(typeof tasks)[number]>) {
@@ -62,12 +78,17 @@ export function Plan({
 
   return (
     <div className="enter-view">
-      <Panel title="Fill in your day" icon={<ListChecks />}>
+      <Panel title="Set your target" icon={<ListChecks />}>
         <div className="p-6">
-          <p className="text-xs text-muted-foreground leading-relaxed">
-            Write the thing, give it a window of time, and it becomes today’s list. Finish it by
-            ticking it — or fix a number and count up to it.
-          </p>
+          <div className="flex flex-wrap gap-2" role="group" aria-label="Plan duration">
+            <Button variant={!repeating ? "secondary" : "ghost"} aria-pressed={!repeating} onClick={() => setRepeating(false)}>Selected day</Button>
+            <Button variant={repeating ? "secondary" : "ghost"} aria-pressed={repeating} onClick={() => setRepeating(true)}>Repeat across months</Button>
+          </div>
+          {repeating && <div className="repeat-plan-fields mt-6">
+            <label className="plan-time">Start month<input className="field" aria-label="Start month" type="month" value={startMonth} onChange={(e) => setStartMonth(e.target.value)} /></label>
+            <label className="plan-time">End month<input className="field" aria-label="End month" type="month" min={startMonth} value={endMonth} onChange={(e) => setEndMonth(e.target.value)} /></label>
+            <label className="plan-time">Repeat<select className="field" aria-label="Repeat frequency" value={frequency} onChange={(e) => setFrequency(e.target.value === "weekdays" ? "weekdays" : "daily")}><option value="daily">Every day</option><option value="weekdays">Monday–Friday</option></select></label>
+          </div>}
           <div className="plan-form mt-5">
             <input
               className="field plan-name"
@@ -75,7 +96,7 @@ export function Plan({
               aria-label="Target name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && add()}
+              onKeyDown={(e) => e.key === "Enter" && !busy && void add()}
             />
             <label className="plan-time">
               <span>From</span>
@@ -110,16 +131,16 @@ export function Plan({
                 onChange={(e) => setCountTo(e.target.value)}
               />
             </label>
-            <Button variant="glow" className="plan-add" onClick={add}>
+            <Button variant="glow" className="plan-add" disabled={busy} onClick={() => void add()}>
               <Plus size={14} />
-              Add to today
+              {busy ? "Saving plan…" : repeating ? "Save repeating target" : "Add target"}
             </Button>
           </div>
         </div>
       </Panel>
 
       <Panel
-        title="Today’s targets"
+        title={`Targets · ${date}`}
         icon={<Clock />}
         className="mt-5"
         action={
@@ -163,6 +184,7 @@ export function Plan({
                     <span className="plan-row-time font-mono text-[10px] text-muted-foreground">
                       {t.from}–{t.to}
                       {t.countTo ? ` · ${Math.min(t.count, t.countTo)}/${t.countTo}` : ""}
+                      {t.seriesId && <span className="block text-violet-soft font-sans">Repeating target</span>}
                     </span>
                     <Button
                       variant="ghost"

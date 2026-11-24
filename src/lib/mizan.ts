@@ -26,7 +26,37 @@ export const taskSchema = z.object({
   count: z.number().int().min(0).default(0),
   /** The number you fix for it. 0 means the target is finished by ticking it. */
   countTo: z.number().int().min(0).default(0),
+  seriesId: z.string().optional(),
 });
+export const repeatPlanSchema = z.object({
+  task: taskSchema,
+  startMonth: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/),
+  endMonth: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/),
+  frequency: z.enum(["daily", "weekdays"]),
+}).superRefine((plan, ctx) => {
+  if (plan.endMonth < plan.startMonth) ctx.addIssue({ code: "custom", message: "End month must follow the start month." });
+  const distance = (Number(plan.endMonth.slice(0, 4)) - Number(plan.startMonth.slice(0, 4))) * 12 + Number(plan.endMonth.slice(5)) - Number(plan.startMonth.slice(5));
+  if (distance > 119) ctx.addIssue({ code: "custom", message: "Choose a range of ten years or less." });
+  if (plan.task.to <= plan.task.from) ctx.addIssue({ code: "custom", message: "End time must follow the start time." });
+});
+export type RepeatPlan = z.infer<typeof repeatPlanSchema>;
+
+/** Expand whole targeted months; each date owns an independent completion state. */
+export function repeatDates(input: RepeatPlan) {
+  const plan = repeatPlanSchema.parse(input);
+  const cursor = new Date(`${plan.startMonth}-01T12:00:00Z`);
+  const dates: string[] = [];
+  while (cursor.toISOString().slice(0, 7) <= plan.endMonth) {
+    if (plan.frequency === "daily" || (cursor.getUTCDay() !== 0 && cursor.getUTCDay() !== 6)) dates.push(cursor.toISOString().slice(0, 10));
+    cursor.setUTCDate(cursor.getUTCDate() + 1);
+  }
+  return dates;
+}
+export function addRepeatingTask(day: Day, task: Task, date: string): Day {
+  const seriesId = task.seriesId ?? task.id;
+  if (day.tasks.some((t) => t.seriesId === seriesId)) return day;
+  return { ...day, tasks: [...day.tasks, { ...task, id: `${seriesId}:${date}`, seriesId, done: false, count: 0 }] };
+}
 export const daySchema = z.object({
   tasks: z.array(taskSchema).default([]),
   prayers: z.array(prayerSchema).length(6),

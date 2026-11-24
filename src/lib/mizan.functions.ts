@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { createClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { daySchema, makeDay } from "./mizan";
+import { addRepeatingTask, daySchema, makeDay, repeatDates, repeatPlanSchema } from "./mizan";
 
 export const getSampleDay = createServerFn({ method: "GET" }).handler(async () => {
   const url = process.env["SUPABASE_URL"];
@@ -46,4 +46,23 @@ export const saveDay = createServerFn({ method: "POST" })
       );
     if (error) throw new Error(error.message);
     return { ok: true };
+  });
+
+export const saveRepeatingPlan = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => repeatPlanSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    const dates = repeatDates(data);
+    const lastDate = dates.at(-1);
+    if (!lastDate) throw new Error("No dates match this plan.");
+    const { data: existing, error: readError } = await context.supabase.from("mizan_days")
+      .select("day,data").eq("user_id", context.userId)
+      .gte("day", `${data.startMonth}-01`).lte("day", lastDate).limit(4000);
+    if (readError) throw new Error("Your plan could not be loaded. Try again.");
+    const history = Object.fromEntries((existing ?? []).map((row) => [row.day, daySchema.parse(row.data)]));
+    const updated = Object.fromEntries(dates.map((date) => [date, addRepeatingTask(history[date] ?? makeDay(), data.task, date)]));
+    const rows = Object.entries(updated).map(([day, value]) => ({ user_id: context.userId, day, data: JSON.parse(JSON.stringify(value)), updated_at: new Date().toISOString() }));
+    const { error } = await context.supabase.from("mizan_days").upsert(rows, { onConflict: "user_id,day" });
+    if (error) throw new Error("Your repeating plan could not be saved. Try again.");
+    return updated;
   });

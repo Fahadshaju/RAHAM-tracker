@@ -123,15 +123,17 @@ function Index() {
               data-active={tab === t.id}
               aria-current={tab === t.id ? "page" : undefined}
               key={t.id}
+              aria-label={t.name}
+              title={t.name}
               onClick={() => changeTab(t.id)}
             >
               <t.icon size={17} />
-              {t.name}
+              <span className="sidebar-label">{t.name}</span>
             </Button>
           ))}
-          <Link to="/garden" className="garden-nav-link">
+          <Link to="/garden" className="garden-nav-link" aria-label="Jannat Garden" title="Jannat Garden">
             <Sparkles size={17} />
-            Jannat Garden
+            <span className="sidebar-label">Jannat Garden</span>
           </Link>
         </nav>
         <div className="sidebar-bottom mt-auto">
@@ -149,10 +151,10 @@ function Index() {
             </p>
             <p className="text-[8px] text-muted-foreground mt-2">SAHIH AL-BUKHARI · 6464</p>
           </div>
-          <Button variant="nav" onClick={() => setAuthOpen(true)}>
+          <Button variant="nav" aria-label={user ? "My account" : "Sign in to RAHAM"} title={user ? "My account" : "Sign in to RAHAM"} onClick={() => setAuthOpen(true)}>
             <UserRound size={16} />
-            <span className="truncate">{user ? "My account" : "Sign in to RAHAM"}</span>
-            <ChevronRight size={13} className="ml-auto" />
+            <span className="truncate sidebar-label">{user ? "My account" : "Sign in to RAHAM"}</span>
+            <ChevronRight size={13} className="ml-auto sidebar-label" />
           </Button>
           <div className="flex items-center gap-2 text-[9px] text-muted-foreground mt-4 px-3">
             <ShieldCheck size={12} />
@@ -216,7 +218,7 @@ function Index() {
                 {tab === "daily"
                   ? "Today, one step at a time."
                   : tab === "plan"
-                    ? "Fill in your day."
+                    ? "Plan your days ahead."
                     : tab === "roadmap"
                       ? "Learn with intention."
                       : tab === "analytics"
@@ -227,7 +229,7 @@ function Index() {
                 {tab === "daily"
                   ? "Assalamu alaikum. Set what matters today, then finish it."
                   : tab === "plan"
-                    ? "Write the thing, give it a time, and it becomes today’s list."
+                    ? "A target for one day, or a rhythm for the months ahead."
                     : tab === "roadmap"
                       ? "Less passive watching. More deliberate mastery."
                       : tab === "analytics"
@@ -297,7 +299,7 @@ function Index() {
                 />
               </div>
               <div hidden={tab !== "plan"}>
-                <Plan day={journal.day} update={journal.update} sample={!user} />
+                <Plan key={date} date={date} day={journal.day} update={journal.update} repeat={journal.repeat} sample={!user} />
               </div>
               <div hidden={tab !== "roadmap"}>
                 <Roadmaps
@@ -315,7 +317,6 @@ function Index() {
                   day={journal.day}
                   date={date}
                   update={journal.update}
-                  onAuth={() => setAuthOpen(true)}
                 />
               </div>
             </>

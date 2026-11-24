@@ -11,7 +11,6 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as GardenRouteImport } from './routes/garden'
-import { Route as ApiPublicOauthGoogleReturnRouteImport } from './routes/api.public.oauth.google.return'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -23,41 +22,31 @@ const GardenRoute = GardenRouteImport.update({
   path: '/garden',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicOauthGoogleReturnRoute =
-  ApiPublicOauthGoogleReturnRouteImport.update({
-    id: '/api/public/oauth/google/return',
-    path: '/api/public/oauth/google/return',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/garden': typeof GardenRoute
-  '/api/public/oauth/google/return': typeof ApiPublicOauthGoogleReturnRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/garden': typeof GardenRoute
-  '/api/public/oauth/google/return': typeof ApiPublicOauthGoogleReturnRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/garden': typeof GardenRoute
-  '/api/public/oauth/google/return': typeof ApiPublicOauthGoogleReturnRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/garden' | '/api/public/oauth/google/return'
+  fullPaths: '/' | '/garden'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/garden' | '/api/public/oauth/google/return'
-  id: '__root__' | '/' | '/garden' | '/api/public/oauth/google/return'
+  to: '/' | '/garden'
+  id: '__root__' | '/' | '/garden'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   GardenRoute: typeof GardenRoute
-  ApiPublicOauthGoogleReturnRoute: typeof ApiPublicOauthGoogleReturnRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -76,20 +65,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GardenRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/oauth/google/return': {
-      id: '/api/public/oauth/google/return'
-      path: '/api/public/oauth/google/return'
-      fullPath: '/api/public/oauth/google/return'
-      preLoaderRoute: typeof ApiPublicOauthGoogleReturnRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   GardenRoute: GardenRoute,
-  ApiPublicOauthGoogleReturnRoute: ApiPublicOauthGoogleReturnRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

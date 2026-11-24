@@ -3,8 +3,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { useMizanAuth } from "@/components/mizan/auth";
-import { dateKey, daySchema, makeDay, type Day } from "@/lib/mizan";
-import { saveDay } from "@/lib/mizan.functions";
+import { addRepeatingTask, dateKey, daySchema, makeDay, repeatDates, type RepeatPlan, type Day } from "@/lib/mizan";
+import { saveDay, saveRepeatingPlan } from "@/lib/mizan.functions";
 import { toast } from "sonner";
 
 export function useMizanJournal(sample: Day) {
@@ -15,6 +15,7 @@ export function useMizanJournal(sample: Day) {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState(false);
   const save = useServerFn(saveDay);
+  const saveRepeat = useServerFn(saveRepeatingPlan);
   const queryClient = useQueryClient();
   const queue = useRef<Promise<void>>(Promise.resolve());
   const revision = useRef(0);
@@ -31,7 +32,7 @@ export function useMizanJournal(sample: Day) {
         .from("mizan_days")
         .select("day,data")
         .order("day", { ascending: false })
-        .limit(400);
+        .limit(4000);
       if (error) throw error;
       return Object.fromEntries(
         (data ?? []).map((row) => [row.day, daySchema.parse(row.data)]),
@@ -88,12 +89,34 @@ export function useMizanJournal(sample: Day) {
     queue.current = task;
     await task;
   }
+  async function repeat(plan: RepeatPlan) {
+    const dates = repeatDates(plan);
+    if (!user) {
+      const changes = Object.fromEntries(dates.map((d) => [d, addRepeatingTask(d === date ? day : demoHistory[d] ?? makeDay(), plan.task, d)]));
+      setDemoHistory((old) => ({ ...old, ...changes }));
+      if (changes[date]) setDay(changes[date]);
+      return dates.length;
+    }
+    const userId = user.id;
+    pending.current++;
+    setSaving(true);
+    const task = queue.current.then(async () => {
+      const changes = await saveRepeat({ data: plan });
+      queryClient.setQueryData<Record<string, Day>>(["private", "journal", userId], (old) => ({ ...old, ...changes }));
+      if (workspace.current === `${userId}:${date}` && changes[date]) setDay(changes[date]);
+      return dates.length;
+    });
+    queue.current = task.then(() => {}, () => {});
+    try { return await task; }
+    finally { pending.current--; if (!pending.current) setSaving(false); }
+  }
   const history = user ? { ...historyQuery.data, [date]: day } : { ...demoHistory, [date]: day };
   return {
     day,
     date,
     setDate,
     update,
+    repeat,
     history,
     saving,
     saveError,

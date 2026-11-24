@@ -602,6 +602,7 @@ export function Daily({
         <div>
           <Panel
             title="The balance"
+            className="balance-panel"
             icon={<Target />}
             action={<span className="text-[9px] text-muted-foreground">RAHAM SCORE</span>}
           >
