@@ -1209,3 +1209,8 @@ body::before {
   .journal-garden.is-min { min-height: 0; height: auto; padding: 12px; }
   .journal-garden.is-min .garden-toggle { position: static; width: 100%; justify-content: center; min-height: 48px; font-size: 15px; }
 }
+/* Reserve room for phone cards that arrive after first paint, so nothing jumps. */
+@media (max-width: 767px) {
+  #mobile-streak:empty { min-height: 452px; }
+  #mobile-garden:empty { min-height: 96px; }
+}
