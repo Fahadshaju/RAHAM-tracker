@@ -55,6 +55,7 @@ export function AuthDialog({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
+  const [usePhone, setUsePhone] = useState(false);
   const { user } = useMizanAuth();
   useEffect(() => {
     const hash = window.location.hash;
@@ -112,7 +113,7 @@ export function AuthDialog({
                     : "Return to your RAHAM"}
           </DialogTitle>
           <DialogDescription>
-            {user ? user.email : "Your journal and prayer proof stay private."}
+            {user ? (user.email || user.phone) : "Your journal and prayer proof stay private."}
           </DialogDescription>
         </DialogHeader>
         {user && mode !== "password" ? (
@@ -125,8 +126,16 @@ export function AuthDialog({
           >
             Sign out
           </Button>
+        ) : usePhone && mode !== "password" ? (
+          <>
+            <PhoneSignIn onDone={() => onOpenChange(false)} />
+            <Button size="sm" variant="link" onClick={() => setUsePhone(false)}>Use email instead</Button>
+          </>
         ) : (
           <>
+            {mode !== "password" && (
+              <Button type="button" variant="outline" onClick={() => setUsePhone(true)}>Continue with phone number</Button>
+            )}
             <form onSubmit={(e) => void submit(e)} className="grid gap-3">
               {mode !== "password" && (
                 <label className="grid gap-2 text-xs">
@@ -183,5 +192,54 @@ export function AuthDialog({
         )}
       </DialogContent>
     </Dialog>
+  );
+}
+
+// Phone sign-in: text a one-time code, then verify it. New numbers get an account automatically.
+function PhoneSignIn({ onDone }: { onDone: () => void }) {
+  const [phone, setPhone] = useState("+91");
+  const [code, setCode] = useState("");
+  const [sent, setSent] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const clean = phone.replace(/[\s-]/g, "");
+  async function send(e?: React.FormEvent) {
+    e?.preventDefault();
+    if (!/^\+\d{8,15}$/.test(clean)) { toast.error("Enter your number with country code, e.g. +919876543210."); return; }
+    setBusy(true);
+    const { error } = await supabase.auth.signInWithOtp({ phone: clean });
+    setBusy(false);
+    if (error) { toast.error(error.message); return; }
+    setSent(true);
+    toast.success("Code sent by SMS.");
+  }
+  async function verify(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    const { error } = await supabase.auth.verifyOtp({ phone: clean, token: code.trim(), type: "sms" });
+    setBusy(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Your private RAHAM is ready.");
+    onDone();
+  }
+  return sent ? (
+    <form onSubmit={(e) => void verify(e)} className="grid gap-3">
+      <label className="grid gap-2 text-xs">
+        Code sent to {clean}
+        <input className="field tracking-[0.3em] text-center" inputMode="numeric" autoComplete="one-time-code" required maxLength={8} value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))} />
+      </label>
+      <Button type="submit" variant="glow" disabled={busy || code.length < 4}>{busy ? "Please wait…" : "Verify and sign in"}</Button>
+      <div className="flex justify-between">
+        <Button type="button" size="sm" variant="link" onClick={() => { setSent(false); setCode(""); }}>Change number</Button>
+        <Button type="button" size="sm" variant="link" disabled={busy} onClick={() => void send()}>Resend code</Button>
+      </div>
+    </form>
+  ) : (
+    <form onSubmit={(e) => void send(e)} className="grid gap-3">
+      <label className="grid gap-2 text-xs">
+        Phone number
+        <input className="field" type="tel" inputMode="tel" autoComplete="tel" required value={phone} onChange={(e) => setPhone(e.target.value)} />
+      </label>
+      <Button type="submit" variant="glow" disabled={busy}>{busy ? "Sending…" : "Send code"}</Button>
+    </form>
   );
 }

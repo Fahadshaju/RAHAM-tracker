@@ -35,4 +35,5 @@
 - Quran juz open in an in-page reader (done)
 - Istighfar main-page target, mobile speed-ups, GitHub push d809d91 (done)
 - Mobile layout changes + PageSpeed 90+ work (done; Vercel score not re-measured)
-- Progress tab not showing on live Vercel site — investigate
+- Progress tab error on live site for signed-in user — error message now shown on the error page; waiting on user screenshot
+- Phone sign-in built — waiting on user to add Twilio details in phone sign-in settings
