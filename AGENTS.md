@@ -39,3 +39,4 @@ use the editor.
 - Generate downloadable roadmap PDFs from the full domain document through a browser-event helper, so collapsed concepts or inactive views never omit content.
 - Materialize finite repeating month plans as independent tasks in user-owned daily JSON through an authenticated batch save; stable series IDs prevent duplicate insertion and keep completion date-specific.
 - Keep the desktop navigation rail compact by default and expand it on pointer proximity or keyboard focus without shifting page content; keep mobile navigation visible.
+- Server entry falls back to VITE_ backend URL/publishable key so external hosts (Vercel) work without duplicate env vars.
