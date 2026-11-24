@@ -40,3 +40,4 @@ use the editor.
 - Materialize finite repeating month plans as independent tasks in user-owned daily JSON through an authenticated batch save; stable series IDs prevent duplicate insertion and keep completion date-specific.
 - Keep the desktop navigation rail compact by default and expand it on pointer proximity or keyboard focus without shifting page content; keep mobile navigation visible.
 - Server entry falls back to VITE_ backend URL/publishable key so external hosts (Vercel) work without duplicate env vars.
+- YouTube metadata uses the Lovable connector when present, else YOUTUBE_API_KEY directly against Google, so non-Lovable hosts like Vercel work.
