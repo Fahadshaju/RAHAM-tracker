@@ -198,3 +198,11 @@ describe("Must-follow rules", () => {
     expect(mustsFor({ "2026-11-23": y }, "2026-11-24")).toEqual([{ name: "Gym", kept: null }]);
   });
 });
+
+import { reflectionEntries } from "@/lib/mizan";
+describe("Honest moment history", () => {
+  it("keeps every timed save, newest first", () => {
+    const d = { ...makeDay(), reflectionLog: [{ at: "2026-11-24T08:00:00Z", answers: ["a", "", ""] }, { at: "2026-11-24T20:00:00Z", answers: ["b", "", ""] }] };
+    expect(reflectionEntries({ "2026-11-24": d }).map((e) => e.answers[0])).toEqual(["b", "a"]);
+  });
+});

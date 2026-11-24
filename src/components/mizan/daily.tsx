@@ -41,6 +41,7 @@ import { Panel, ProgressLine, Reminder, Ring } from "./shared";
 import { HoldToSet } from "./hold-to-set";
 import { TaskTargetDialog } from "./task-target-dialog";
 import { type useMizanJournal } from "@/hooks/use-mizan-journal";
+import { reflectionEntries } from "@/lib/mizan";
 import { MUSTS_MAX, MUSTS_MIN, PREP_TYPES, mustsFor, mustPoints } from "@/lib/mizan";
 import { GUARDRAILS, HABIT_POINTS_PER_DAY, HABIT_BADGES, badgeProgress, scoreDay, streak, taskIsDone, taskPoints, verdict, formatMinutes, type Task } from "@/lib/mizan";
 import { supabase } from "@/integrations/supabase/client";
@@ -111,6 +112,9 @@ export function Daily({
   const [mustEdit, setMustEdit] = useState(false);
   const [mustDraft, setMustDraft] = useState<string[]>([]);
   const [showHistory, setShowHistory] = useState(false);
+  const [draft, setDraft] = useState<string[]>(day.reflection);
+  const reflectionKey = `${date}|${day.reflection.join("\u0000")}`;
+  useEffect(() => setDraft(day.reflection), [reflectionKey]); // eslint-disable-line react-hooks/exhaustive-deps
   const [prepTopic, setPrepTopic] = useState("");
   const [prepDifficulty, setPrepDifficulty] = useState("Medium");
   const [prepLink, setPrepLink] = useState("");
@@ -960,27 +964,28 @@ export function Daily({
                           ? "Be honest. There is a way back…"
                           : "One clear intention…"
                     }
-                    value={day.reflection[i] ?? ""}
-                    onChange={(e) =>
-                      void update({
-                        ...day,
-                        reflection: day.reflection.map((s, j) => (j === i ? e.target.value : s)),
-                      })
-                    }
+                    value={draft[i] ?? ""}
+                    onChange={(e) => setDraft((d) => d.map((s, j) => (j === i ? e.target.value : s)))}
                   />
                 </label>
               ),
             )}
           </div>
-          <div className="px-[22px] pb-[22px]">
+          <div className="px-[22px] pb-[22px] flex flex-wrap items-center gap-2">
+            <Button variant="glow" size="sm" className="h-8" disabled={!draft.some((r) => r.trim())} onClick={() => {
+              void update({ ...day, reflection: draft, reflectionLog: [...day.reflectionLog, { at: new Date().toISOString(), answers: draft }] });
+              toast.success("Honest moment saved.");
+            }}>
+              <Check size={13} />Enter &amp; save
+            </Button>
             <Button variant="ghost" size="sm" className="h-7 text-[11px] text-violet-soft" onClick={() => setShowHistory((v) => !v)}>
               {showHistory ? "Hide my history" : "See my history"}
             </Button>
             <Button variant="ghost" size="sm" className="h-7 text-[11px] text-violet-soft" onClick={async () => {
               const XLSX = await import("xlsx");
-              const rows = Object.keys(history).sort().filter((k) => history[k]!.reflection.some((r) => r.trim())).map((k) => ({ Date: k, "What did I do well?": history[k]!.reflection[0] ?? "", "Where did my Nafs win?": history[k]!.reflection[1] ?? "", "My plan for tomorrow": history[k]!.reflection[2] ?? "" }));
-              const ws = XLSX.utils.json_to_sheet(rows, { header: ["Date", "What did I do well?", "Where did my Nafs win?", "My plan for tomorrow"] });
-              ws["!cols"] = [{ wch: 12 }, { wch: 40 }, { wch: 40 }, { wch: 40 }];
+              const rows = reflectionEntries(history).reverse().map((e) => ({ Date: e.date, Time: new Date(e.at).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }), "What did I do well?": e.answers[0] ?? "", "Where did my Nafs win?": e.answers[1] ?? "", "My plan for tomorrow": e.answers[2] ?? "" }));
+              const ws = XLSX.utils.json_to_sheet(rows, { header: ["Date", "Time", "What did I do well?", "Where did my Nafs win?", "My plan for tomorrow"] });
+              ws["!cols"] = [{ wch: 12 }, { wch: 10 }, { wch: 40 }, { wch: 40 }, { wch: 40 }];
               const wb = XLSX.utils.book_new();
               XLSX.utils.book_append_sheet(wb, ws, "Honest moments");
               XLSX.writeFile(wb, "raham-honest-moments.xlsx");
@@ -988,17 +993,17 @@ export function Daily({
               Download Excel
             </Button>
             {showHistory && (() => {
-              const past = Object.keys(history).filter((k) => k !== date && history[k]!.reflection.some((r) => r.trim())).sort().reverse();
+              const past = reflectionEntries(history);
               return past.length ? (
-                <div className="mt-3 grid gap-3 max-h-[360px] overflow-y-auto">
-                  {past.map((k) => (
-                    <div key={k} className="border-t border-border pt-3 text-[11px]">
-                      <p className="text-violet-soft font-mono text-[10px] mb-1">{new Date(`${k}T12:00:00`).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" })} · present</p>
-                      {["Did well", "Nafs won", "Tomorrow"].map((q, i) => history[k]!.reflection[i]?.trim() ? <p key={q} className="leading-relaxed"><span className="text-muted-foreground">{q}: </span>{history[k]!.reflection[i]}</p> : null)}
+                <div className="mt-3 grid gap-3 max-h-[360px] overflow-y-auto w-full">
+                  {past.map((e) => (
+                    <div key={e.at + e.date} className="border-t border-border pt-3 text-[11px]">
+                      <p className="text-violet-soft font-mono text-[10px] mb-1">{new Date(e.at).toLocaleString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" })}</p>
+                      {["Did well", "Nafs won", "Tomorrow"].map((q, i) => e.answers[i]?.trim() ? <p key={q} className="leading-relaxed"><span className="text-muted-foreground">{q}: </span>{e.answers[i]}</p> : null)}
                     </div>
                   ))}
                 </div>
-              ) : <p className="text-[11px] text-muted-foreground mt-2">No earlier answers yet. Write today’s and they’ll appear here by date.</p>;
+              ) : <p className="text-[11px] text-muted-foreground mt-2 w-full">Nothing saved yet. Write your answers and press Enter &amp; save.</p>;
             })()}
           </div>
         </Panel>

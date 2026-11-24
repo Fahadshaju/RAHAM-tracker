@@ -83,6 +83,8 @@ export const daySchema = z.object({
     }),
   ),
   reflection: z.array(z.string()).length(3),
+  // Each press of Save adds a timestamped entry, so the history keeps every save.
+  reflectionLog: z.array(z.object({ at: z.string(), answers: z.array(z.string()).length(3) })).default([]),
   proof: z.array(z.object({ path: z.string(), kind: z.string() })),
   blocks: z.array(
     z.object({
@@ -199,6 +201,7 @@ export function makeDay(sample = false): Day {
       : [],
     reflection: ["", "", ""],
     musts: [],
+    reflectionLog: [],
     proof: [],
     blocks: [
       ...PRAYER_NAMES.map((name, i) => ({
@@ -562,4 +565,14 @@ export function habitBadge(i: number): { points: number; name: string } {
   const base = HABIT_BADGE_NAMES[k % HABIT_BADGE_NAMES.length]!;
   const round = Math.floor(k / HABIT_BADGE_NAMES.length);
   return { points: 1000 * (k + 2), name: round ? `${base} ${ROMAN(round + 1)}` : base };
+}
+
+/** Every saved honest moment across days, newest first; older days without a log use their saved answers. */
+export function reflectionEntries(history: Record<string, Day>) {
+  const out: { at: string; date: string; answers: string[] }[] = [];
+  for (const [date, d] of Object.entries(history)) {
+    if (d.reflectionLog.length) d.reflectionLog.forEach((e) => out.push({ ...e, date }));
+    else if (d.reflection.some((r) => r.trim())) out.push({ at: `${date}T12:00:00`, date, answers: d.reflection });
+  }
+  return out.sort((a, b) => b.at.localeCompare(a.at));
 }
