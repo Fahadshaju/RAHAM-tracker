@@ -1,7 +1,8 @@
 import { createPortal } from "react-dom";
+import { lazyWithReload } from "@/lib/lazy-reload";
 import { createFileRoute } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
-import { lazy, Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import {
   CalendarDays,
   BookOpen,
@@ -28,9 +29,9 @@ import { Daily } from "@/components/mizan/daily";
 import { Plan } from "@/components/mizan/plan";
 import { IstighfarCard } from "@/components/mizan/istighfar-card";
 
-const JournalGarden = lazy(() => import("@/components/garden/journal-garden").then((m) => ({ default: m.JournalGarden })));
-const Analytics = lazy(() => import("@/components/mizan/analytics").then((m) => ({ default: m.Analytics })));
-const Quran = lazy(() => import("@/components/mizan/quran").then((m) => ({ default: m.Quran })));
+const JournalGarden = lazyWithReload(() => import("@/components/garden/journal-garden").then((m) => ({ default: m.JournalGarden })));
+const Analytics = lazyWithReload(() => import("@/components/mizan/analytics").then((m) => ({ default: m.Analytics })));
+const Quran = lazyWithReload(() => import("@/components/mizan/quran").then((m) => ({ default: m.Quran })));
 const Fallback = () => <div className="py-16 flex justify-center text-muted-foreground"><LoaderCircle className="animate-spin" /></div>;
 import { downloadFile } from "@/lib/mizan";
 

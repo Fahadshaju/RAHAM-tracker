@@ -1,13 +1,14 @@
 // Jannat garden page: task list on the left, a 3D paradise box that grows with finished tasks and streaks.
+import { lazyWithReload } from "@/lib/lazy-reload";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { lazy, Suspense, useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { ArrowLeft, Check, Pencil, Plus, RotateCcw, Trash2, Volume2, VolumeX, ChevronDown } from "lucide-react";
 import {
   MAX_TREES, TIERS, UPGRADES, forestLevel, freeSpot, gardenStreak, unlocked, type GardenState,
 } from "@/lib/garden";
 import { startAmbience } from "@/components/garden/sound";
 
-const GardenScene = lazy(() => import("@/components/garden/scene"));
+const GardenScene = lazyWithReload(() => import("@/components/garden/scene"));
 const KEY = "raham-garden-v1";
 const today = () => new Date().toLocaleDateString("en-CA");
 

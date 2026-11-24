@@ -1,5 +1,6 @@
 // Main-page garden: grows from the journal's prayers and targets; withers on a negative day.
-import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { lazyWithReload } from "@/lib/lazy-reload";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Sprout, Skull } from "lucide-react";
 import { HEAVEN_TIER_NAMES, HELL_TIER_NAMES, heavenTier, hellDepth, nextHeavenTier, HALF, forestLevel, freeSpot, journalGarden, unlocked, type GardenTree } from "@/lib/garden";
@@ -8,7 +9,7 @@ import { Switch } from "@/components/ui/switch";
 
 const GOALS = [7, 21, 40, 100];
 
-const GardenScene = lazy(() => import("./scene"));
+const GardenScene = lazyWithReload(() => import("./scene"));
 
 function seeded(seed: number) {
   let s = seed;
