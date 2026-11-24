@@ -1,3 +1,4 @@
+import { DonateBox } from "@/components/mizan/donate-box";
 import { createPortal } from "react-dom";
 import { lazyWithReload } from "@/lib/lazy-reload";
 import { createFileRoute } from "@tanstack/react-router";
@@ -109,6 +110,7 @@ function Index() {
     day: "numeric",
     year: "numeric",
   });
+  const gregorianShort = new Date(`${date}T12:00:00`).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" });
   function changeTab(t: Tab) {
     setTab(t);
     window.scrollTo({ top: 0, behavior: "instant" });
@@ -176,6 +178,16 @@ function Index() {
             <span className="text-muted-foreground desktop-label">My workspace</span>
             <ChevronRight size={12} className="text-muted-foreground desktop-label" />
             <span>{currentTab?.name}</span>
+            <label className="md:hidden flex flex-col leading-tight ml-2 pl-2 border-l border-border cursor-pointer">
+              <span className="text-[11px] flex items-center gap-1.5 whitespace-nowrap">
+                {gregorianShort}
+                <span className="journal-date">
+                  <CalendarDays size={12} className="text-violet-soft" />
+                  <input aria-label="Journal date (mobile)" type="date" value={date} onChange={(e) => e.target.value && journal.setDate(e.target.value)} />
+                </span>
+              </span>
+              <span className="text-[9px] text-muted-foreground">{hijri}</span>
+            </label>
           </div>
           <div className="flex gap-3 items-center">
             <span className="pill muted-pill desktop-label">
@@ -204,6 +216,7 @@ function Index() {
             >
               <Download size={15} />
             </Button>
+            <DonateBox />
             <Button
               variant="outline"
               className="size-8 rounded-full p-0"
@@ -245,7 +258,7 @@ function Index() {
                         : "Faith first. Focus protected. Intentions honored."}
               </p>
             </div>
-            <div className="text-right">
+            <div className="text-right hidden md:block">
               <p className="text-[11px] text-muted-foreground">{hijri}</p>
               <label className="flex gap-2 items-center justify-end mt-2 text-[11px] cursor-pointer">
                 <span>{gregorian}</span>
