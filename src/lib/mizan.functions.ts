@@ -1,27 +1,16 @@
 import { createServerFn } from "@tanstack/react-start";
-import { createClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { addRepeatingTask, daySchema, makeDay, repeatDates, repeatPlanSchema } from "./mizan";
 
 export const getSampleDay = createServerFn({ method: "GET" }).handler(async () => {
-  const url = process.env["SUPABASE_URL"];
-  const key = process.env["SUPABASE_PUBLISHABLE_KEY"];
-  if (!url || !key) return makeDay(true);
-  const db = createClient(url, key, {
-    auth: { persistSession: false },
-    global: {
-      fetch: (input, init) => {
-        const h = new Headers(init?.headers);
-        if (key.startsWith("sb_") && h.get("Authorization") === `Bearer ${key}`)
-          h.delete("Authorization");
-        h.set("apikey", key);
-        return fetch(input, { ...init, headers: h });
-      },
-    },
-  });
-  const { data } = await db.from("mizan_samples").select("data").eq("id", "daily").maybeSingle();
   const base = makeDay(true);
-  return daySchema.parse({ ...base, ...(data?.data ?? {}) });
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data } = await supabaseAdmin.from("mizan_samples").select("data").eq("id", "daily").maybeSingle();
+    return daySchema.parse({ ...base, ...((data?.data as object) ?? {}) });
+  } catch {
+    return base;
+  }
 });
 export const saveDay = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
