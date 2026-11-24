@@ -1,3 +1,4 @@
+import { createPortal } from "react-dom";
 import { createFileRoute } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { lazy, Suspense, useEffect, useState } from "react";
@@ -72,9 +73,19 @@ function Index() {
   const journal = useMizanJournal(sample);
   const [tab, setTab] = useState<Tab>("daily");
   const [authOpen, setAuthOpen] = useState(false);
+  // On phones the 3D garden sits between "Nafs & purity" and "The balance".
+  const [mobileGarden, setMobileGarden] = useState<HTMLElement | null>(null);
   const [hijri, setHijri] = useState("");
   const currentTab = tabs.find((t) => t.id === tab);
   const { user, date, saving, loading } = journal;
+  useEffect(() => {
+    if (loading) return;
+    const mq = window.matchMedia("(max-width: 767px)");
+    const pick = () => setMobileGarden(mq.matches ? document.getElementById("mobile-garden") : null);
+    pick();
+    mq.addEventListener("change", pick);
+    return () => mq.removeEventListener("change", pick);
+  }, [loading]);
   useEffect(() => {
     try {
       setHijri(
@@ -287,9 +298,14 @@ function Index() {
           ) : (
             <>
               <div hidden={tab !== "daily"} className="today-stack">
-                <Suspense fallback={<div className="h-[420px] rounded-xl bg-card/40 mb-6" />}>
-                  <JournalGarden history={journal.history} date={date} />
-                </Suspense>
+                {(() => {
+                  const garden = (
+                    <Suspense fallback={<div className="h-[420px] rounded-xl bg-card/40 mb-6" />}>
+                      <JournalGarden history={journal.history} date={date} />
+                    </Suspense>
+                  );
+                  return mobileGarden ? createPortal(garden, mobileGarden) : garden;
+                })()}
                 <IstighfarCard day={journal.day} date={date} update={journal.update} repeat={journal.repeat} />
                 <Daily
                   journal={journal}
