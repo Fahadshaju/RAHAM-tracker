@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "events": {
+    "project.quran_juz_marked_read": {
+      "event_schema_version": 1,
+      "description": "A Quran juz was marked as read.",
+      "privacy": {
+        "contains_pii": false,
+        "purpose": "product_analytics"
+      },
+      "properties_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "juz"
+        ],
+        "properties": {
+          "juz": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 30
+          }
+        }
+      }
+    },
+    "project.quran_juz_opened": {
+      "event_schema_version": 1,
+      "description": "A Quran juz was opened in the Quran tab.",
+      "privacy": {
+        "contains_pii": false,
+        "purpose": "product_analytics"
+      },
+      "properties_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "juz"
+        ],
+        "properties": {
+          "juz": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 30
+          }
+        }
+      }
+    }
+  }
+}

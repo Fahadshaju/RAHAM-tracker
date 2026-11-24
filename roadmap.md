@@ -32,3 +32,4 @@
 ## Done
 - [x] Sync the newest work to https://github.com/Fahadshaju/RAHAM-tracker (main, commit f733294): 12 changed/new files uploaded, remote copy byte-checked against local.
 - [x] Google sign-in: dropped at the user's request in favour of email-only auth, so no hosted Google redirect is pending.
+- Quran juz open in an in-page reader (done)

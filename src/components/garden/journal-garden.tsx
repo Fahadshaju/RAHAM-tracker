@@ -82,7 +82,7 @@ export function JournalGarden({ history, date }: { history: Record<string, Day>;
             {GOALS.map((n) => (
               <button key={n} type="button" className={`streak-goal-chip${n === goal ? " is-on" : ""}`} onClick={() => { setGoal(n); save("raham-streak-goal", String(n)); }}>{n}</button>
             ))}
-            <input aria-label="Custom streak target" type="number" min={1} max={3650} placeholder="Custom" className="streak-goal-chip w-[76px] bg-transparent" onChange={(e) => { const n = Math.floor(Number(e.target.value)); if (n > 0 && n <= 3650) { setGoal(n); save("raham-streak-goal", String(n)); } }} />
+            <input aria-label="Custom streak target" type="number" min={1} max={3650} placeholder="Custom" className="streak-goal-chip w-[84px] bg-transparent" onChange={(e) => { const n = Math.floor(Number(e.target.value)); if (n > 0 && n <= 3650) { setGoal(n); save("raham-streak-goal", String(n)); } }} />
           </div>
           <label className="flex items-center justify-between gap-2 text-[12px] text-muted-foreground">
             <span>Compulsory: {six ? "all 6 incl. Tahajjud" : "5 obligatory prayers"}</span>

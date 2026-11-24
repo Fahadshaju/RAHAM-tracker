@@ -446,41 +446,16 @@ export function Daily({
                   label={`${p.name}. Hold or press Enter to set prayer status`}
                   onHold={() => setPrayerMenu(prayerMenu === p.name ? null : p.name)}
                 >
-                  <input
-                    className="prayer-check"
-                    type="checkbox"
-                    aria-label={`Log ${p.name}`}
-                    checked={p.status === "On time" || p.status === "Late"}
-                    onChange={(e) =>
-                      void update({
-                        ...day,
-                        prayers: day.prayers.map((x) =>
-                          x.name === p.name
-                            ? {
-                                ...x,
-                                status: e.target.checked ? "On time" : "Pending",
-                                loggedAt: e.target.checked
-                                  ? new Date().toLocaleTimeString("en-GB", {
-                                      hour: "2-digit",
-                                      minute: "2-digit",
-                                    })
-                                  : "",
-                              }
-                            : x,
-                        ),
-                      })
-                    }
-                  />
                   <div className="prayer-name">
-                    <p className="text-[12px] flex items-center gap-2">
-                      <Icon size={12} className="text-muted-foreground" />
+                    <p className="text-[18px] font-medium flex items-center gap-2.5">
+                      <Icon size={17} className="text-muted-foreground" />
                       {p.name}
                       <span className="prayer-mark" data-mark={marks > 0 ? "positive" : marks < 0 ? "negative" : "open"} title="Prayer marks">
                         {marks > 0 ? `+${marks}` : marks}
                       </span>
                     </p>
                     {p.name === "Tahajjud" && (
-                      <span className="text-[8px] text-muted-foreground ml-5">
+                      <span className="block text-[12px] text-muted-foreground ml-7">
                         Voluntary night prayer
                       </span>
                     )}
@@ -488,7 +463,7 @@ export function Daily({
                   <input
                     aria-label={`${p.name} logged time`}
                     title={`Scheduled ${p.time} · actual time logged`}
-                    className="prayer-time bg-transparent w-[65px] border-0"
+                    className="prayer-time bg-transparent w-[110px] border-0 text-[17px]"
                     type="time"
                     value={p.loggedAt || p.time}
                     onChange={(e) =>
@@ -542,16 +517,6 @@ export function Daily({
                 </HoldToSet>
               );
             })}
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full mt-3 text-[11px] h-8"
-              onClick={() => void showProof()}
-            >
-              <Camera size={13} />
-              {day.proof.length ? "View Fajr proof" : "Upload Fajr proof"}
-              <ArrowUpRight size={12} className="ml-auto" />
-            </Button>
             <div className="flex justify-between mt-4 text-[10px]">
               <span className="text-muted-foreground">
                 {next ? (
@@ -614,7 +579,7 @@ export function Daily({
                 <div className="mt-4 rounded-lg border border-border p-3">
                   <p className="eyebrow mb-2">Milestones · <span className="text-gold">{b.total} pts</span></p>
                   <div className="flex flex-wrap gap-1.5">
-                    {HABIT_BADGES.map((m) => {
+                    {b.badges.map((m) => {
                       const got = b.total >= m.points;
                       return (
                         <span
@@ -665,9 +630,9 @@ export function Daily({
             </div>
             <div className="px-[22px] py-5 space-y-3">
               {[
-                { name: "Prayers", value: pillars.prayers, weight: "40%" },
+                { name: "Prayers", value: pillars.prayers, weight: "50%" },
                 { name: "Commitments", value: pillars.purity, weight: "35%" },
-                { name: "Targets", value: pillars.targets, weight: "25%" },
+                { name: "Targets", value: pillars.targets, weight: "15%" },
               ].map((p) => (
                 <div key={p.name}>
                   <div className="flex justify-between text-[10px] mb-1.5">
@@ -936,54 +901,6 @@ export function Daily({
         onOpenChange={(open) => { if (!open) setEditingTask(null); }}
         onSave={(next) => update({ ...day, tasks: day.tasks.map((task) => task.id === next.id ? next : task) })}
       />
-      <Dialog open={proofOpen} onOpenChange={setProofOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Fajr proof</DialogTitle>
-            <DialogDescription>
-              Masjid timer + date photo. Only you can access these images.
-            </DialogDescription>
-          </DialogHeader>
-          {proofImages.length > 0 && (
-            <div className="grid grid-cols-2 gap-3">
-              {proofImages.map((url, i) => (
-                <img
-                  key={url}
-                  src={url}
-                  alt={day.proof[i]?.kind ?? "Fajr photo"}
-                  className="w-full aspect-square object-contain bg-secondary rounded-md"
-                />
-              ))}
-            </div>
-          )}
-          {!user ? (
-            <Button variant="glow" onClick={onAuth}>
-              Sign in to store prayer proof
-            </Button>
-          ) : (
-            <>
-              {["Masjid timer photo", "Date photo"].map((label, i) => (
-                <label className="text-xs grid gap-2" key={label}>
-                  {label}
-                  <input
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    className="field"
-                    onChange={(e) =>
-                      setFiles((old) =>
-                        old.map((f, j) => (j === i ? (e.target.files?.[0] ?? null) : f)),
-                      )
-                    }
-                  />
-                </label>
-              ))}
-              <Button variant="glow" disabled={uploading} onClick={() => void uploadProof()}>
-                {uploading ? "Saving photos…" : "Save proof privately"}
-              </Button>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
       <Dialog open={tawbah} onOpenChange={setTawbah}>
         <DialogContent>
           <DialogHeader>

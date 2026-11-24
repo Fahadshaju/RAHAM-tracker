@@ -203,7 +203,7 @@ export function guardrailPoints(kept: boolean | null) {
 }
 const clamp = (n: number) => Math.max(0, Math.min(1, n));
 /** A day is judged on three things only: prayers kept, commitments kept, targets finished. */
-export const PILLAR_WEIGHTS = { prayers: 0.4, purity: 0.35, targets: 0.25 } as const;
+export const PILLAR_WEIGHTS = { prayers: 0.5, purity: 0.35, targets: 0.15 } as const;
 export function scoreDay(day: Day) {
   // Unlogged commitments earn no credit; negative point totals floor at zero.
   const total = day.tasks.length;
@@ -217,8 +217,8 @@ export function scoreDay(day: Day) {
   const weights = total
     ? PILLAR_WEIGHTS
     : {
-        prayers: PILLAR_WEIGHTS.prayers / 0.75,
-        purity: PILLAR_WEIGHTS.purity / 0.75,
+        prayers: PILLAR_WEIGHTS.prayers / 0.85,
+        purity: PILLAR_WEIGHTS.purity / 0.85,
         targets: 0,
       };
   const score =
@@ -518,6 +518,14 @@ export const HABIT_BADGES = [
 export function badgeProgress(history: Record<string, Day>, today: string, habits: number) {
   let total = 0;
   for (let i = 0; i < habits; i++) total += streak(history, i, today).longest * HABIT_POINTS_PER_DAY;
-  const next = HABIT_BADGES.find((b) => b.points > total) ?? null;
-  return { total, earned: HABIT_BADGES.filter((b) => b.points <= total), next };
+  const earned: { points: number; name: string }[] = [];
+  for (let i = 0; habitBadge(i).points <= total; i++) earned.push(habitBadge(i));
+  const next = habitBadge(earned.length);
+  return { total, earned, next, badges: [...earned, next] };
+}
+/** Milestones never end: after the named badges, a new one unlocks every 1000 points. */
+export function habitBadge(i: number): { points: number; name: string } {
+  if (i < HABIT_BADGES.length) return HABIT_BADGES[i]!;
+  const level = i - HABIT_BADGES.length + 2;
+  return { points: 1000 * level, name: `Unshakeable ${level}` };
 }

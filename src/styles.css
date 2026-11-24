@@ -416,7 +416,7 @@
 }
 .prayer-row {
   display: grid;
-  grid-template-columns: 24px minmax(90px, 1fr) 108px 94px;
+  grid-template-columns: minmax(90px, 1fr) 130px 130px;
   align-items: center;
   gap: 12px;
   padding: 19px 0;
@@ -434,9 +434,9 @@
 .prayer-time {
   color: var(--muted-foreground);
   font-family: var(--font-mono);
-  font-size: var(--text-detail);
+  font-size: 17px; color: var(--foreground);
   min-height: 40px;
-  width: 108px;
+  width: 130px;
 }
 .status-select {
   background: var(--secondary);
@@ -444,9 +444,9 @@
   border-radius: 4px;
   color: var(--muted-foreground);
   padding: 10px 8px;
-  font-size: var(--text-detail);
+  font-size: 15px;
   min-height: 40px;
-  width: 94px;
+  width: 118px;
 }
 .status-select[data-status="On time"] {
   background: color-mix(in oklch, var(--success) 10%, transparent);
@@ -1023,11 +1023,10 @@ body::before {
   .panel-header { padding: var(--space-panel) var(--space-panel) 0; }
   .panel-title { font-size: 17px; }
   .dashboard-grid > :last-child > * + * { margin-top: var(--space-section); }
-  .prayer-row { grid-template-columns: 22px minmax(0, 1fr) 94px; gap: 8px 12px; padding-block: 18px; }
-  .prayer-row .status-select { grid-column: 3; grid-row: 1 / span 2; }
-  .prayer-row .prayer-time { grid-column: 2; grid-row: 2; }
-  .prayer-row > .prayer-check { grid-column: 1; grid-row: 1 / span 2; }
-  .prayer-row > div { grid-column: 2; grid-row: 1; }
+  .prayer-row { grid-template-columns: minmax(0, 1fr) 118px; gap: 6px 12px; padding-block: 16px; }
+  .prayer-row .status-select { grid-column: 2; grid-row: 1 / span 2; min-height: 44px; }
+  .prayer-row .prayer-time { grid-column: 1; grid-row: 2; }
+  .prayer-row > div { grid-column: 1; grid-row: 1; }
   .plan-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .plan-add { justify-self: stretch; }
   .field { font-size: 16px; }
@@ -1068,11 +1067,11 @@ body::before {
 }
 
 /* Today: giant streak on the left, 3D garden shifted right */
-.streak-hero { position: absolute; z-index: 2; left: 28px; top: 24px; bottom: 24px; width: min(42%, 440px); display: flex; flex-direction: column; justify-content: center; gap: 6px; }
+.streak-hero { position: absolute; z-index: 2; left: 28px; top: 24px; bottom: 24px; width: min(30%, 300px); display: flex; flex-direction: column; justify-content: center; gap: 6px; }
 .streak-hero-label { font-size: 13px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--violet-soft, var(--primary)); }
-.streak-hero-number { font-family: var(--font-mono, monospace); font-weight: 700; line-height: 0.85; font-size: clamp(120px, 22vw, 300px); color: var(--gold); text-shadow: 0 0 60px oklch(0.78 0.125 86 / 0.35); animation: streak-pop 0.7s cubic-bezier(.2,1.4,.4,1) both; }
+.streak-hero-number { font-family: var(--font-mono, monospace); font-weight: 700; line-height: 0.85; font-size: clamp(100px, 16vw, 220px); color: var(--gold); text-shadow: 0 0 60px oklch(0.78 0.125 86 / 0.35); animation: streak-pop 0.7s cubic-bezier(.2,1.4,.4,1) both; }
 .streak-hero-unit { font-size: 18px; color: var(--muted-foreground); }
-.streak-hero-goal { margin-top: 14px; display: grid; gap: 10px; padding: 14px; border-radius: 14px; background: oklch(0.12 0.03 300 / 0.6); backdrop-filter: blur(12px); border: 1px solid oklch(0.78 0.125 86 / 0.25); }
+.streak-hero-goal { margin-top: 10px; display: grid; gap: 6px; padding: 8px 10px; border-radius: 10px; font-size: 11px; max-width: 260px; background: oklch(0.12 0.03 300 / 0.6); backdrop-filter: blur(12px); border: 1px solid oklch(0.78 0.125 86 / 0.25); }
 .streak-hero-bar { height: 6px; border-radius: 99px; background: oklch(1 0 0 / 0.08); overflow: hidden; }
 .streak-hero-bar i { display: block; height: 100%; background: var(--gold); transition: width .6s ease; }
 .streak-goal-chip { font-size: 12px; padding: 4px 10px; border-radius: 99px; border: 1px solid var(--border); color: var(--foreground); }
@@ -1170,7 +1169,7 @@ body::before {
   .plan-row-actions { grid-column: 3; grid-row: 1 / span 2; }
 }
 @media (max-width: 760px) {
-  .prayer-row > .prayer-name { grid-column: 2; grid-row: 1; }
+  .prayer-row > .prayer-name { grid-column: 1; grid-row: 1; }
   .prayer-row > .hold-status-menu { grid-column: 1 / -1; grid-row: auto; }
   .hold-status-choice { flex: 1 1 calc(50% - 8px); }
 }

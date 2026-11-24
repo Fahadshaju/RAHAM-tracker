@@ -70,11 +70,11 @@ describe("Balance weights", () => {
     }));
     return day;
   };
-  it("weights prayers at 40 percent on its own", () => {
+  it("weights prayers at 50 percent on its own", () => {
     const day = makeDay();
     day.prayers = day.prayers.map((p) => ({ ...p, status: "On time" }));
     withTasks(day, 4, 0);
-    expect(scoreDay(day).score).toBe(4);
+    expect(scoreDay(day).score).toBe(5);
   });
   it("weights commitments at 35 percent on its own", () => {
     const day = makeDay();
@@ -82,15 +82,15 @@ describe("Balance weights", () => {
     withTasks(day, 4, 0);
     expect(scoreDay(day).score).toBe(3.5);
   });
-  it("weights finished targets at 25 percent", () => {
+  it("weights finished targets at 15 percent", () => {
     const day = makeDay();
     withTasks(day, 4, 2);
-    expect(scoreDay(day).score).toBe(1.3);
+    expect(scoreDay(day).score).toBe(0.8);
   });
   it("shares the target share when no targets are set yet", () => {
     const day = makeDay();
     day.prayers = day.prayers.map((p) => ({ ...p, status: "On time" }));
-    expect(scoreDay(day).score).toBe(5.3);
+    expect(scoreDay(day).score).toBe(5.9);
   });
   it("finishes a numbered target only when the count reaches the number", () => {
     const day = makeDay();

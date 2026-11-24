@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import {
   CalendarDays,
+  BookOpen,
   Check,
   ChevronRight,
   Cloud,
@@ -23,10 +24,13 @@ import { useMizanJournal } from "@/hooks/use-mizan-journal";
 import { AuthDialog } from "@/components/mizan/auth";
 import { RahamLogo } from "@/components/mizan/shared";
 import { Daily } from "@/components/mizan/daily";
-import { Analytics } from "@/components/mizan/analytics";
-import { Calendar } from "@/components/mizan/calendar";
 import { Plan } from "@/components/mizan/plan";
-import { JournalGarden } from "@/components/garden/journal-garden";
+import { IstighfarCard } from "@/components/mizan/istighfar-card";
+
+const JournalGarden = lazy(() => import("@/components/garden/journal-garden").then((m) => ({ default: m.JournalGarden })));
+const Analytics = lazy(() => import("@/components/mizan/analytics").then((m) => ({ default: m.Analytics })));
+const Quran = lazy(() => import("@/components/mizan/quran").then((m) => ({ default: m.Quran })));
+const Fallback = () => <div className="py-16 flex justify-center text-muted-foreground"><LoaderCircle className="animate-spin" /></div>;
 import { downloadFile } from "@/lib/mizan";
 
 const sampleOptions = queryOptions({
@@ -60,7 +64,7 @@ const tabs = [
   { id: "daily", name: "Today", icon: LayoutDashboard },
   { id: "plan", name: "My plan", icon: ListChecks },
   { id: "analytics", name: "Progress", icon: Flame },
-  { id: "calendar", name: "Calendar", icon: CalendarDays },
+  { id: "quran", name: "Quran", icon: BookOpen },
 ] as const;
 type Tab = (typeof tabs)[number]["id"];
 function Index() {
@@ -213,7 +217,9 @@ function Index() {
                     ? "Plan your days ahead."
                     : tab === "analytics"
                       ? "Your progress, honestly."
-                      : "Your sacred calendar."}
+                      : tab === "quran"
+                        ? "Read the Quran, one juz at a time."
+                        : "Your sacred calendar."}
               </h1>
               <p className="text-xs text-muted-foreground mt-2 tab-enter" key={`${tab}-sub`}>
                 {tab === "daily"
@@ -222,7 +228,9 @@ function Index() {
                     ? "A target for one day, or a rhythm for the months ahead."
                     : tab === "analytics"
                       ? "A calm look at the days you showed up."
-                      : "Faith first. Focus protected. Intentions honored."}
+                      : tab === "quran"
+                        ? "Choose any of the 30 parts and mark it when you finish."
+                        : "Faith first. Focus protected. Intentions honored."}
               </p>
             </div>
             <div className="text-right">
@@ -279,7 +287,10 @@ function Index() {
           ) : (
             <>
               <div hidden={tab !== "daily"}>
-                <JournalGarden history={journal.history} date={date} />
+                <Suspense fallback={<div className="h-[420px] rounded-xl bg-card/40 mb-6" />}>
+                  <JournalGarden history={journal.history} date={date} />
+                </Suspense>
+                <IstighfarCard day={journal.day} date={date} update={journal.update} repeat={journal.repeat} />
                 <Daily
                   journal={journal}
                   onAuth={() => setAuthOpen(true)}
@@ -289,16 +300,10 @@ function Index() {
               <div hidden={tab !== "plan"}>
                 <Plan key={date} date={date} day={journal.day} update={journal.update} repeat={journal.repeat} sample={!user} />
               </div>
-              {tab === "analytics" && (
-                <Analytics history={journal.history} date={date} sample={!user} />
-              )}
-              <div hidden={tab !== "calendar"}>
-                <Calendar
-                  day={journal.day}
-                  date={date}
-                  update={journal.update}
-                />
-              </div>
+              <Suspense fallback={<Fallback />}>
+                {tab === "analytics" && <Analytics history={journal.history} date={date} sample={!user} />}
+                {tab === "quran" && <Quran />}
+              </Suspense>
             </>
           )}
           <footer className="text-[9px] text-muted-foreground flex justify-between mt-8 pt-5 border-t border-border">

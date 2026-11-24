@@ -452,12 +452,14 @@ function CameraRig({ fly }: { fly: React.MutableRefObject<THREE.Vector3 | null> 
 
 export default function GardenScene({ trees, level, upgrades, withered = false, tier = 0, depth = 1 }: Props) {
   const fly = useRef<THREE.Vector3 | null>(null);
+  const mobile = typeof window !== "undefined" && window.matchMedia("(max-width: 768px), (pointer: coarse)").matches;
   return (
     <Canvas
-      shadows
-      dpr={[1, 1.75]}
+      shadows={!mobile}
+      dpr={mobile ? [1, 1.25] : [1, 1.75]}
+      performance={{ min: 0.5 }}
       camera={{ position: [11, 8.5, 11], fov: 40 }}
-      gl={{ antialias: true }}
+      gl={{ antialias: !mobile, powerPreference: "high-performance" }}
       onCreated={({ gl }) => (gl.toneMapping = THREE.ACESFilmicToneMapping)}
     >
       {/* Golden-hour sky and haze */}

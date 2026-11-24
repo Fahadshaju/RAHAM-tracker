@@ -41,3 +41,9 @@ use the editor.
 - Keep the desktop navigation rail compact by default and expand it on pointer proximity or keyboard focus without shifting page content; keep mobile navigation visible.
 - Server entry falls back to VITE_ backend URL/publishable key so external hosts (Vercel) work without duplicate env vars.
 - YouTube metadata uses the Lovable connector when present, else YOUTUBE_API_KEY directly against Google, so non-Lovable hosts like Vercel work.
+- Quran tab: 30 juz PDFs and first-page JPGs stored as Lovable assets under src/assets/quran, loaded via import.meta.glob.
+- Habit milestones are unbounded: named badges then one every 1000 points (habitBadge).
+- Quran read progress syncs per account in public.quran_progress (merged with device copy on sign-in); local copy kept for signed-out use.
+- Calendar tab removed at user request; do not reintroduce without a new request.
+- Quran PDFs render in-page with pdfjs canvases, never iframes or new tabs; hosted asset framing is blocked by the browser.
+- Main-page Istighfar card sets a fixed daily target over a month range (series istighfar-daily) via journal.repeat; heavy tabs load lazily and the 3D garden lowers quality on phones for speed.

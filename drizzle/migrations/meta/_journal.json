@@ -15,6 +15,13 @@
       "when": 1795441323436,
       "tag": "0001_mizan_calendar_and_proof",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1795517001530,
+      "tag": "0002_quran_progress",
+      "breakpoints": true
     }
   ]
 }

@@ -104,6 +104,27 @@ export type Database = {
         }
         Relationships: []
       }
+      quran_progress: {
+        Row: {
+          last_juz: number
+          read_juz: number[]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          last_juz?: number
+          read_juz?: number[]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          last_juz?: number
+          read_juz?: number[]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

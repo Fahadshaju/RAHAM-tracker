@@ -20,4 +20,14 @@ describe("milestone badges", () => {
     expect(b.earned.map((x) => x.name)).toEqual(["First Steps"]);
     expect(b.next?.points).toBe(150);
   });
+  it("keeps adding a milestone every 1000 points after 1000", () => {
+    const h: Record<string, never> = {};
+    const start = new Date("2026-01-01T12:00:00");
+    for (let i = 0; i < 250; i++) h[new Date(start.getTime() + i * 864e5).toISOString().slice(0, 10)] = d(true);
+    const last = new Date(start.getTime() + 249 * 864e5).toISOString().slice(0, 10);
+    const b = badgeProgress(h, last, 1);
+    expect(b.total).toBe(2500);
+    expect(b.earned.at(-1)).toEqual({ points: 2000, name: "Unshakeable 2" });
+    expect(b.next).toEqual({ points: 3000, name: "Unshakeable 3" });
+  });
 });
