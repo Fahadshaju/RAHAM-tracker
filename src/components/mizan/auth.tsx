@@ -82,7 +82,10 @@ export function AuthDialog({
           options: { emailRedirectTo: window.location.origin },
         });
         if (error) throw error;
-        if (!data.session) toast.success("Check your email to confirm your account.");
+        if (data.user && data.user.identities?.length === 0) {
+          toast.error("This email already has an account (maybe via Google). Use Continue with Google, or tap Forgot password to set a password.");
+          setMode("signin");
+        } else if (!data.session) toast.success("Check your email to confirm your account.");
         else onOpenChange(false);
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -234,7 +237,7 @@ function GoogleButton() {
 }
 
 function friendlyAuthError(msg: string) {
-  if (/invalid login credentials/i.test(msg)) return "Email or password is wrong. Please try again.";
+  if (/invalid login credentials/i.test(msg)) return "Email or password is wrong. If you signed up with Google, use Continue with Google or tap Forgot password to set a password.";
   if (/email not confirmed/i.test(msg)) return "Please confirm your email first — check your inbox for the link.";
   if (/token has expired|invalid.*(otp|token)/i.test(msg)) return "That code is wrong or expired. Ask for a new code.";
   if (/rate limit|too many/i.test(msg)) return "Too many tries. Please wait a minute and try again.";
