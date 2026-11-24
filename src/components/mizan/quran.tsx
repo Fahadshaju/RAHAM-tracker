@@ -4,18 +4,21 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { PdfReader } from "./pdf-reader";
 
-const files = import.meta.glob<{ url: string }>("@/assets/quran/juz-*.pdf.asset.json", {
+const files = import.meta.glob<{ url: string; original_filename: string }>("@/assets/quran/juz-*.pdf.asset.json", {
   eager: true,
   import: "default",
 });
-const starts = import.meta.glob<{ url: string }>("@/assets/quran/start-*.jpg.asset.json", {
+const starts = import.meta.glob<{ url: string; original_filename: string }>("@/assets/quran/start-*.jpg.asset.json", {
   eager: true,
   import: "default",
 });
-const startUrls = Object.keys(starts).sort().map((k) => starts[k]!.url);
+// Lovable-hosted assets only resolve on Lovable domains; other hosts (Vercel) serve copies from /quran/.
+const onLovable = typeof window === "undefined" || /lovable\.(app|dev)$/.test(window.location.hostname) || window.location.hostname === "localhost";
+const src = (a: { url: string; original_filename: string }) => (onLovable ? a.url : `/quran/${a.original_filename}`);
+const startUrls = Object.keys(starts).sort().map((k) => src(starts[k]!));
 const parts = Object.keys(files)
   .sort()
-  .map((key, i) => ({ number: i + 1, url: files[key]!.url, start: startUrls[i] ?? "" }));
+  .map((key, i) => ({ number: i + 1, url: src(files[key]!), start: startUrls[i] ?? "" }));
 const STORE = "raham-quran-read";
 
 export function Quran() {

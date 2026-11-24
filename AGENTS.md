@@ -47,3 +47,4 @@ use the editor.
 - Calendar tab removed at user request; do not reintroduce without a new request.
 - Quran PDFs render in-page with pdfjs canvases, never iframes or new tabs; hosted asset framing is blocked by the browser.
 - Main-page Istighfar card sets a fixed daily target over a month range (series istighfar-daily) via journal.repeat; heavy tabs load lazily and the 3D garden lowers quality on phones for speed.
+- On non-Lovable hosts the Quran tab loads files from /quran/<original_filename>; those copies exist only in the GitHub repo (pushed from the asset CDN), not in the Lovable project.
