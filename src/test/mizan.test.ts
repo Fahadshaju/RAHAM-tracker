@@ -187,3 +187,14 @@ describe("Quran read habit", () => {
     expect(daySchema.parse(old).guardrails).toEqual([true, true, true, true, true, true, true, null]);
   });
 });
+
+import { mustPoints, mustsFor } from "@/lib/mizan";
+describe("Must-follow rules", () => {
+  it("awards +5 kept, -5 missed, 0 unlogged", () => {
+    expect(mustPoints([{ name: "a", kept: true }, { name: "b", kept: false }, { name: "c", kept: null }, { name: "d", kept: false }])).toBe(-5);
+  });
+  it("carries yesterday's rules to today unticked", () => {
+    const y = { ...makeDay(), musts: [{ name: "Gym", kept: true }] };
+    expect(mustsFor({ "2026-11-23": y }, "2026-11-24")).toEqual([{ name: "Gym", kept: null }]);
+  });
+});

@@ -41,6 +41,7 @@ import { Panel, ProgressLine, Reminder, Ring } from "./shared";
 import { HoldToSet } from "./hold-to-set";
 import { TaskTargetDialog } from "./task-target-dialog";
 import { type useMizanJournal } from "@/hooks/use-mizan-journal";
+import { MUSTS_MAX, MUSTS_MIN, PREP_TYPES, mustsFor, mustPoints } from "@/lib/mizan";
 import { GUARDRAILS, HABIT_POINTS_PER_DAY, HABIT_BADGES, badgeProgress, scoreDay, streak, taskIsDone, taskPoints, verdict, formatMinutes, type Task } from "@/lib/mizan";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -106,7 +107,10 @@ export function Daily({
   const [files, setFiles] = useState<(File | null)[]>([null, null]);
   const [uploading, setUploading] = useState(false);
   const [proofImages, setProofImages] = useState<string[]>([]);
-  const [prepType, setPrepType] = useState<"DSA" | "System Design">("DSA");
+  const [prepType, setPrepType] = useState<string>("DSA");
+  const [mustEdit, setMustEdit] = useState(false);
+  const [mustDraft, setMustDraft] = useState<string[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
   const [prepTopic, setPrepTopic] = useState("");
   const [prepDifficulty, setPrepDifficulty] = useState("Medium");
   const [prepLink, setPrepLink] = useState("");
@@ -738,6 +742,39 @@ export function Daily({
                 </div>
               );
             })()}
+      {(() => {
+        const list = mustsFor(history, date);
+        const pts = mustPoints(list);
+        const toggle = (i: number) => {
+          const next = list.map((m, j) => j !== i ? m : { ...m, kept: m.kept === null ? true : m.kept ? false : null });
+          void update({ ...day, musts: next });
+        };
+        return (
+          <div className="mt-4 border-t border-border pt-4">
+          <div className="flex items-center justify-between mb-2"><p className="text-[11px] flex items-center gap-2"><ShieldCheck size={13} className="text-violet-soft" />Must-follow rules ({MUSTS_MIN}–{MUSTS_MAX})</p>
+            <Button variant="ghost" size="sm" className="h-6 text-[10px] text-violet-soft" onClick={() => { setMustDraft(list.length ? list.map((m) => m.name) : Array(MUSTS_MIN).fill("")); setMustEdit(true); }}>
+              {list.length ? "Edit rules" : "Set rules"}
+            </Button></div>
+            <div>
+              {list.length ? (
+                <>
+                  <p className="text-[10px] text-muted-foreground mb-3">Tap once to tick (+5), again for missed (−5). Today: <span className={pts < 0 ? "text-destructive" : "text-success"}>{pts > 0 ? "+" : ""}{pts} pts</span> · {list.filter((m) => m.kept).length}/{list.length} kept</p>
+                  <div className="grid sm:grid-cols-2 gap-2">
+                    {list.map((m, i) => (
+                      <button key={i} type="button" onClick={() => toggle(i)} className="flex items-center justify-between gap-3 rounded-lg border border-border px-3 py-2.5 text-left text-xs hover:border-primary/60 min-w-0">
+                        <span className="min-w-0 truncate">{m.name}</span>
+                        <span aria-label={m.kept === null ? "Not logged" : m.kept ? "Kept" : "Missed"} className={`size-6 shrink-0 rounded-md grid place-items-center border ${m.kept ? "bg-primary border-primary text-primary-foreground" : m.kept === false ? "border-destructive text-destructive" : "border-border"}`}>
+                          {m.kept ? <Check size={13} /> : m.kept === false ? "✕" : null}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </>
+              ) : <p className="text-xs text-muted-foreground">Set {MUSTS_MIN}–{MUSTS_MAX} rules you must follow every day. Each one missed costs 5 points.</p>}
+            </div>
+          </div>
+        );
+      })()}
             <Button
               variant="ghost"
               className="text-[10px] text-muted-foreground w-full mt-3 h-8"
@@ -867,9 +904,9 @@ export function Daily({
               </div>
               <div>
                 <p className="font-mono text-xl">
-                  {day.prep.filter((p) => p.type === "System Design").length}
+                  {day.prep.filter((p) => p.type !== "DSA").length}
                 </p>
-                <p className="text-[10px] text-muted-foreground mt-1">Design topics</p>
+                <p className="text-[10px] text-muted-foreground mt-1">Other topics</p>
               </div>
             </div>
             {day.prep.slice(-3).map((p, i) => (
@@ -934,6 +971,35 @@ export function Daily({
                 </label>
               ),
             )}
+          </div>
+          <div className="px-[22px] pb-[22px]">
+            <Button variant="ghost" size="sm" className="h-7 text-[11px] text-violet-soft" onClick={() => setShowHistory((v) => !v)}>
+              {showHistory ? "Hide my history" : "See my history"}
+            </Button>
+            <Button variant="ghost" size="sm" className="h-7 text-[11px] text-violet-soft" onClick={async () => {
+              const XLSX = await import("xlsx");
+              const rows = Object.keys(history).sort().filter((k) => history[k]!.reflection.some((r) => r.trim())).map((k) => ({ Date: k, "What did I do well?": history[k]!.reflection[0] ?? "", "Where did my Nafs win?": history[k]!.reflection[1] ?? "", "My plan for tomorrow": history[k]!.reflection[2] ?? "" }));
+              const ws = XLSX.utils.json_to_sheet(rows, { header: ["Date", "What did I do well?", "Where did my Nafs win?", "My plan for tomorrow"] });
+              ws["!cols"] = [{ wch: 12 }, { wch: 40 }, { wch: 40 }, { wch: 40 }];
+              const wb = XLSX.utils.book_new();
+              XLSX.utils.book_append_sheet(wb, ws, "Honest moments");
+              XLSX.writeFile(wb, "raham-honest-moments.xlsx");
+            }}>
+              Download Excel
+            </Button>
+            {showHistory && (() => {
+              const past = Object.keys(history).filter((k) => k !== date && history[k]!.reflection.some((r) => r.trim())).sort().reverse();
+              return past.length ? (
+                <div className="mt-3 grid gap-3 max-h-[360px] overflow-y-auto">
+                  {past.map((k) => (
+                    <div key={k} className="border-t border-border pt-3 text-[11px]">
+                      <p className="text-violet-soft font-mono text-[10px] mb-1">{new Date(`${k}T12:00:00`).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" })} · present</p>
+                      {["Did well", "Nafs won", "Tomorrow"].map((q, i) => history[k]!.reflection[i]?.trim() ? <p key={q} className="leading-relaxed"><span className="text-muted-foreground">{q}: </span>{history[k]!.reflection[i]}</p> : null)}
+                    </div>
+                  ))}
+                </div>
+              ) : <p className="text-[11px] text-muted-foreground mt-2">No earlier answers yet. Write today’s and they’ll appear here by date.</p>;
+            })()}
           </div>
         </Panel>
       </div>
@@ -1035,6 +1101,31 @@ export function Daily({
           </Button>
         </DialogContent>
       </Dialog>
+      <Dialog open={mustEdit} onOpenChange={setMustEdit}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Must-follow rules</DialogTitle>
+            <DialogDescription>Write {MUSTS_MIN} to {MUSTS_MAX} rules. They repeat every day, starting unticked.</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-2">
+            {mustDraft.map((v, i) => (
+              <div key={i} className="flex gap-2">
+                <input className="field" value={v} placeholder={`Rule ${i + 1}`} onChange={(e) => setMustDraft((d) => d.map((x, j) => j === i ? e.target.value : x))} />
+                {mustDraft.length > MUSTS_MIN && <Button variant="ghost" size="sm" onClick={() => setMustDraft((d) => d.filter((_, j) => j !== i))}>✕</Button>}
+              </div>
+            ))}
+            {mustDraft.length < MUSTS_MAX && <Button variant="outline" size="sm" onClick={() => setMustDraft((d) => [...d, ""])}><Plus size={12} />Add rule</Button>}
+          </div>
+          <Button variant="glow" onClick={() => {
+            const names = mustDraft.map((n) => n.trim()).filter(Boolean);
+            if (names.length < MUSTS_MIN) { toast.error(`Write at least ${MUSTS_MIN} rules.`); return; }
+            const old = mustsFor(history, date);
+            void update({ ...day, musts: names.map((name) => ({ name, kept: old.find((m) => m.name === name)?.kept ?? null })) });
+            setMustEdit(false);
+            toast.success("Rules saved.");
+          }}><Check />Save rules</Button>
+        </DialogContent>
+      </Dialog>
       <Dialog open={prepOpen} onOpenChange={setPrepOpen}>
         <DialogContent>
           <DialogHeader>
@@ -1069,10 +1160,9 @@ export function Daily({
               <select
                 className="field"
                 value={prepType}
-                onChange={(e) => setPrepType(e.target.value === "DSA" ? "DSA" : "System Design")}
+                onChange={(e) => setPrepType(e.target.value)}
               >
-                <option>DSA</option>
-                <option>System Design</option>
+                {PREP_TYPES.map((t) => <option key={t}>{t}</option>)}
               </select>
             </label>
             <label className="grid gap-2 text-xs">

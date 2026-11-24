@@ -76,7 +76,7 @@ export const daySchema = z.object({
   sessions: z.array(z.object({ label: z.string(), minutes: z.number(), time: z.string() })),
   prep: z.array(
     z.object({
-      type: z.enum(["DSA", "System Design"]),
+      type: z.string(),
       topic: z.string(),
       difficulty: z.string(),
       link: z.string(),
@@ -92,7 +92,22 @@ export const daySchema = z.object({
     }),
   ),
   careerRoadmap: z.string().default(""),
+  // Must-follow rules (5–8) the user sets; ticked +5, marked missed −5, carried to the next day unticked.
+  musts: z.array(z.object({ name: z.string(), kept: z.boolean().nullable() })).max(8).default([]),
 });
+export const PREP_TYPES = ["DSA", "System Design", "Machine Learning", "Deep Learning", "GenAI", "Agentic AI", "RAG", "LLMs / Prompting", "MLOps", "Coding", "SQL", "Python", "Java", "JavaScript / TypeScript", "C++", "Data Structures", "Behavioral / HR"] as const;
+export const MUSTS_MIN = 5;
+export const MUSTS_MAX = 8;
+/** Today's must-follow list: today's saved one, else yesterday's rules unticked. */
+export function mustsFor(history: Record<string, Day>, date: string): Day["musts"] {
+  const today = history[date]?.musts;
+  if (today?.length) return today;
+  const prev = Object.keys(history).filter((k) => k < date && history[k]!.musts.length).sort().pop();
+  return prev ? history[prev]!.musts.map((m) => ({ name: m.name, kept: null })) : [];
+}
+export function mustPoints(musts: Day["musts"]) {
+  return musts.reduce((s, m) => s + guardrailPoints(m.kept), 0);
+}
 export type Day = z.infer<typeof daySchema>;
 export type Prayer = Day["prayers"][number];
 export type Block = Day["blocks"][number];
@@ -183,6 +198,7 @@ export function makeDay(sample = false): Day {
         ]
       : [],
     reflection: ["", "", ""],
+    musts: [],
     proof: [],
     blocks: [
       ...PRAYER_NAMES.map((name, i) => ({
@@ -215,7 +231,7 @@ export function scoreDay(day: Day) {
   const done = day.tasks.filter(taskIsDone).length;
   const pillars = {
     prayers: clamp(day.prayers.reduce((s, p) => s + prayerPoints(p), 0) / 70),
-    purity: clamp(day.guardrails.reduce<number>((s, k) => s + guardrailPoints(k), 0) / (GUARDRAILS.length * 5)),
+    purity: clamp((day.guardrails.reduce<number>((s, k) => s + guardrailPoints(k), 0) + mustPoints(day.musts)) / ((GUARDRAILS.length + day.musts.length) * 5)),
     targets: total ? clamp(done / total) : 0,
   };
   // With no targets set yet, their share is shared between the two that remain.
@@ -241,7 +257,8 @@ export function scoreDay(day: Day) {
     tasksTotal: total,
     points:
       day.prayers.reduce((s, p) => s + prayerPoints(p), 0) +
-      day.guardrails.reduce<number>((s, k) => s + guardrailPoints(k), 0),
+      day.guardrails.reduce<number>((s, k) => s + guardrailPoints(k), 0) +
+      mustPoints(day.musts),
   };
 }
 export function verdict(score: number) {
