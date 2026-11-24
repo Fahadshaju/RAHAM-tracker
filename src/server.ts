@@ -1,5 +1,11 @@
 import "./lib/error-capture";
 
+// Hosts like Vercel may only define the VITE_ backend values; reuse those public values server-side.
+if (typeof process !== "undefined") {
+  process.env["SUPABASE_URL"] ||= import.meta.env["VITE_SUPABASE_URL"];
+  process.env["SUPABASE_PUBLISHABLE_KEY"] ||= import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"];
+}
+
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
 
