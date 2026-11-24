@@ -37,3 +37,4 @@
 - Mobile layout changes + PageSpeed 90+ work (done; Vercel score not re-measured)
 - Progress tab error on live site for signed-in user — error message now shown on the error page; waiting on user screenshot
 - Phone sign-in built — waiting on user to add Twilio details in phone sign-in settings
+- [x] Google sign-in button removed at the user's request, then restored in the same session when the user asked for it back; email sign-in stays.
