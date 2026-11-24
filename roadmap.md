@@ -27,5 +27,8 @@
 - [x] Email sign-in verified end to end: correct password opens the private app, wrong password is rejected, sign-out returns to the public view. Email confirmation kept on, as chosen.
 
 ## Open
-- [ ] Sync the newest commits to https://github.com/Fahadshaju/RAHAM-tracker: no GitHub access is available in this session, so the repo still has the earlier push.
-- [ ] Complete a real Google sign-in: the button is verified in both modes, but the hosted preview is behind Lovable's login wall and localhost has no OAuth proxy, so the Google redirect and returning session remain unverified.
+- [ ] Deploy on Vercel: waiting for a Vercel token through the secure form.
+
+## Done
+- [x] Sync the newest work to https://github.com/Fahadshaju/RAHAM-tracker (main, commit f733294): 12 changed/new files uploaded, remote copy byte-checked against local.
+- [x] Google sign-in: dropped at the user's request in favour of email-only auth, so no hosted Google redirect is pending.
