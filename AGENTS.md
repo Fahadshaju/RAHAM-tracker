@@ -34,7 +34,7 @@ use the editor.
 - Store each date's journal as validated JSON scoped by user and date, and roadmaps as validated user-owned documents, so journal changes and course progress remain private.
 - Keep scoring, exports, and schemas in the browser-safe domain module; protect concrete point values and pillar weights with unit tests.
 - Read YouTube metadata and all available transcripts in staged authenticated server functions, then merge every source in a single dependency-ordered synthesis; never invent missing captions or timestamps.
-- Accounts are email/password plus Google (managed Lovable broker on Lovable hosts, direct backend OAuth elsewhere, which needs the user's own Google client); phone sign-in removed at user request; calendar sharing is .ics export only.
+- Accounts are email/password only (Google and phone removed at user request); sign-up uses a retype-password check with auto-confirm instead of email verification; calendar sharing is .ics export only.
 - Define visual roles, readable text scales, and workspace spacing in global tokens and reusable view styles; numerical progress is the only runtime visual dimension, and shared compact-label mappings keep existing tabs consistent.
 - Generate downloadable roadmap PDFs from the full domain document through a browser-event helper, so collapsed concepts or inactive views never omit content.
 - Materialize finite repeating month plans as independent tasks in user-owned daily JSON through an authenticated batch save; stable series IDs prevent duplicate insertion and keep completion date-specific.
