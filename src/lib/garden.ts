@@ -78,17 +78,17 @@ export function unlocked(streakDays: number) {
 }
 
 // ── Journal-driven garden: the 6 prayers and up to 10 targets of each day grow (or wither) the box. ──
-import { taskIsDone, type Day } from "@/lib/mizan";
+import { taskPoints, type Day } from "@/lib/mizan";
 
 export const GARDEN_TASK_CAP = 10;
-/** +1 per prayer prayed (on time or late), −2 per missed prayer, +1 per finished target (max 10). */
+/** +1 per prayer prayed (on time or late), −2 per missed prayer, and +1/−1 per finished/missed target (max 10). */
 export function dayGardenPoints(day: Day) {
   let pts = 0;
   for (const p of day.prayers) {
     if (p.status === "On time" || p.status === "Late") pts += 1;
     else if (p.status === "Missed") pts -= 2;
   }
-  pts += Math.min(GARDEN_TASK_CAP, day.tasks.filter(taskIsDone).length);
+  pts += day.tasks.slice(0, GARDEN_TASK_CAP).reduce((sum, task) => sum + taskPoints(task), 0);
   return pts;
 }
 

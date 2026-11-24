@@ -12,6 +12,7 @@ import {
   Play,
   Pause,
   RotateCcw,
+  X,
   Plus,
   ArrowUpRight,
   BookOpen,
@@ -26,7 +27,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { prayerStreak } from "@/lib/mizan";
+import { prayerPoints, prayerStreak } from "@/lib/mizan";
 import {
   Dialog,
   DialogContent,
@@ -35,8 +36,10 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Panel, ProgressLine, Reminder, Ring } from "./shared";
+import { HoldToSet } from "./hold-to-set";
+import { TaskTargetDialog } from "./task-target-dialog";
 import { type useMizanJournal } from "@/hooks/use-mizan-journal";
-import { GUARDRAILS, HABIT_POINTS_PER_DAY, HABIT_BADGES, badgeProgress, scoreDay, streak, taskIsDone, verdict, formatMinutes } from "@/lib/mizan";
+import { GUARDRAILS, HABIT_POINTS_PER_DAY, HABIT_BADGES, badgeProgress, scoreDay, streak, taskIsDone, taskPoints, verdict, formatMinutes, type Task } from "@/lib/mizan";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -54,6 +57,8 @@ export function Daily({
   const { day, date, update, history, user } = journal;
   const { score, pillars, tasksDone, tasksTotal } = scoreDay(day);
   const [proofOpen, setProofOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [prayerMenu, setPrayerMenu] = useState<string | null>(null);
   const [sixPrayers, setSixPrayers] = useState(false);
   useEffect(() => {
     const read = () => setSixPrayers(localStorage.getItem("raham-six-prayers") === "1");
@@ -126,6 +131,12 @@ export function Daily({
     (p) => p.status === "On time" || p.status === "Late",
   ).length;
   const kept = day.guardrails.filter(Boolean).length;
+  function setPrayerStatus(name: string, status: "Pending" | "On time" | "Late" | "Missed") {
+    void update({
+      ...day,
+      prayers: day.prayers.map((prayer) => prayer.name === name ? { ...prayer, status } : prayer),
+    });
+  }
   async function locate() {
     if (!navigator.geolocation) {
       toast.error("Location is unavailable in this browser.");
@@ -319,21 +330,27 @@ export function Daily({
           {tasksTotal ? (
             <>
               <ProgressLine value={(tasksDone / tasksTotal) * 100} />
+              <p className="hold-hint">Hold a target to set its time or fixed daily count.</p>
               <div className="mt-4 grid gap-2">
                 {day.tasks.map((t) => (
-                  <div className={`plan-row ${taskIsDone(t) ? "is-done" : ""}`} key={t.id}>
+                  <HoldToSet
+                    className={`plan-row ${t.countTo ? "has-count" : ""} ${taskIsDone(t) ? "is-done" : ""} ${t.missed ? "is-missed" : ""}`}
+                    key={t.id}
+                    label={`${t.name}. Hold or press Enter to set this target`}
+                    onHold={() => setEditingTask(t)}
+                  >
                     {t.countTo ? (
                       <input
                         className="field count-fill"
-                        type="number"
+                        type="text"
                         inputMode="numeric"
-                        min={0}
+                        pattern="[0-9]*"
                         aria-label={`How many ${t.name} completed today`}
                         placeholder="0"
                         value={t.count || ""}
                         onChange={(e) => {
-                          const n = Math.max(0, Math.floor(Number(e.target.value) || 0));
-                          void update({ ...day, tasks: day.tasks.map((x) => (x.id === t.id ? { ...x, count: n } : x)) });
+                          const n = Math.max(0, Math.floor(Number(e.target.value.replace(/\D/g, "")) || 0));
+                          void update({ ...day, tasks: day.tasks.map((x) => (x.id === t.id ? { ...x, count: n, missed: false } : x)) });
                         }}
                       />
                     ) : (
@@ -346,7 +363,7 @@ export function Daily({
                           void update({
                             ...day,
                             tasks: day.tasks.map((x) =>
-                              x.id === t.id ? { ...x, done: e.target.checked } : x,
+                              x.id === t.id ? { ...x, done: e.target.checked, missed: false } : x,
                             ),
                           })
                         }
@@ -354,11 +371,16 @@ export function Daily({
                     )}
                     <span className="plan-row-name">{t.name}</span>
                     <span className="plan-row-time font-mono text-[10px] text-muted-foreground">
+                      <span className="task-mark" data-mark={taskPoints(t) > 0 ? "positive" : taskPoints(t) < 0 ? "negative" : "open"} title="Target marks">
+                        {taskPoints(t) > 0 ? "+1" : taskPoints(t) < 0 ? "−1" : "0"}
+                      </span>
                       {t.from}–{t.to}
                       {t.countTo ? ` · ${Math.min(t.count, t.countTo)}/${t.countTo}` : ""}
                     </span>
-                    <span />
-                  </div>
+                    <Button variant="ghost" size="icon" className="size-8 shrink-0" aria-label={`Set ${t.name} target`} onClick={() => setEditingTask(t)}>
+                      <Settings2 size={14} />
+                    </Button>
+                  </HoldToSet>
                 ))}
               </div>
             </>
@@ -413,10 +435,17 @@ export function Daily({
               </Button>
               <span className="text-[9px] text-muted-foreground">MWL</span>
             </div>
+            <p className="hold-hint">Hold a prayer for quick status choices.</p>
             {day.prayers.map((p, i) => {
               const Icon = prayerIcons[i] ?? Moon;
+              const marks = prayerPoints(p);
               return (
-                <div className="prayer-row" key={p.name}>
+                <HoldToSet
+                  className={`prayer-row ${prayerMenu === p.name ? "is-holding" : ""}`}
+                  key={p.name}
+                  label={`${p.name}. Hold or press Enter to set prayer status`}
+                  onHold={() => setPrayerMenu(prayerMenu === p.name ? null : p.name)}
+                >
                   <input
                     className="prayer-check"
                     type="checkbox"
@@ -442,10 +471,13 @@ export function Daily({
                       })
                     }
                   />
-                  <div>
+                  <div className="prayer-name">
                     <p className="text-[12px] flex items-center gap-2">
                       <Icon size={12} className="text-muted-foreground" />
                       {p.name}
+                      <span className="prayer-mark" data-mark={marks > 0 ? "positive" : marks < 0 ? "negative" : "open"} title="Prayer marks">
+                        {marks > 0 ? `+${marks}` : marks}
+                      </span>
                     </p>
                     {p.name === "Tahajjud" && (
                       <span className="text-[8px] text-muted-foreground ml-5">
@@ -475,17 +507,8 @@ export function Daily({
                     value={p.status}
                     onChange={(e) => {
                       const status = e.target.value;
-                      if (
-                        status !== "Pending" &&
-                        status !== "On time" &&
-                        status !== "Late" &&
-                        status !== "Missed"
-                      )
-                        return;
-                      void update({
-                        ...day,
-                        prayers: day.prayers.map((x) => (x.name === p.name ? { ...x, status } : x)),
-                      });
+                      if (status !== "Pending" && status !== "On time" && status !== "Late" && status !== "Missed") return;
+                      setPrayerStatus(p.name, status);
                     }}
                   >
                     <option>Pending</option>
@@ -493,7 +516,30 @@ export function Daily({
                     <option>Late</option>
                     <option>Missed</option>
                   </select>
-                </div>
+                  {prayerMenu === p.name && (
+                    <div className="hold-status-menu" role="group" aria-label={`Set ${p.name} status`}>
+                      {(["On time", "Late", "Missed", "Pending"] as const).map((status) => (
+                        <Button
+                          key={status}
+                          type="button"
+                          size="sm"
+                          variant={p.status === status ? "secondary" : "ghost"}
+                          className="hold-status-choice"
+                          data-status={status}
+                          aria-pressed={p.status === status}
+                          aria-label={status === "Pending" ? "Clear" : status}
+                          onClick={() => { setPrayerStatus(p.name, status); setPrayerMenu(null); }}
+                        >
+                          {status === "Pending" ? "Clear" : status}
+                          <span className="menu-mark">{prayerPoints({ ...p, status }) > 0 ? `+${prayerPoints({ ...p, status })}` : prayerPoints({ ...p, status })}</span>
+                        </Button>
+                      ))}
+                      <Button type="button" variant="ghost" size="icon" className="size-8" aria-label="Close prayer status menu" onClick={() => setPrayerMenu(null)}>
+                        <X size={14} />
+                      </Button>
+                    </div>
+                  )}
+                </HoldToSet>
               );
             })}
             <Button
@@ -885,6 +931,11 @@ export function Daily({
           </div>
         </Panel>
       </div>
+      <TaskTargetDialog
+        task={editingTask}
+        onOpenChange={(open) => { if (!open) setEditingTask(null); }}
+        onSave={(next) => update({ ...day, tasks: day.tasks.map((task) => task.id === next.id ? next : task) })}
+      />
       <Dialog open={proofOpen} onOpenChange={setProofOpen}>
         <DialogContent>
           <DialogHeader>

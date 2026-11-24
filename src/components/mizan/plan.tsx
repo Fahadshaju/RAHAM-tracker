@@ -1,8 +1,10 @@
 import { useState } from "react";
-import { Check, Clock, Plus, Trash2, ListChecks } from "lucide-react";
+import { Check, Clock, Plus, Settings2, Trash2, ListChecks } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Panel, ProgressLine } from "./shared";
-import { repeatDates, taskIsDone, type RepeatPlan, type Day } from "@/lib/mizan";
+import { HoldToSet } from "./hold-to-set";
+import { TaskTargetDialog } from "./task-target-dialog";
+import { repeatDates, taskIsDone, taskPoints, type RepeatPlan, type Day, type Task } from "@/lib/mizan";
 import { toast } from "sonner";
 
 /**
@@ -31,6 +33,7 @@ export function Plan({
   const [endMonth, setEndMonth] = useState(date.slice(0, 7));
   const [frequency, setFrequency] = useState<RepeatPlan["frequency"]>("daily");
   const [busy, setBusy] = useState(false);
+  const [editing, setEditing] = useState<Task | null>(null);
   const tasks = day.tasks;
   const done = tasks.filter(taskIsDone).length;
 
@@ -49,7 +52,7 @@ export function Plan({
       toast.error("The number should be a whole number of 1 or more.");
       return;
     }
-    const task = { id: crypto.randomUUID(), name: label, from, to, done: false, count: 0, countTo: number };
+    const task = { id: crypto.randomUUID(), name: label, from, to, done: false, count: 0, countTo: number, missed: false };
     setBusy(true);
     try {
       if (repeating) {
@@ -119,16 +122,16 @@ export function Plan({
               />
             </label>
             <label className="plan-time">
-              <span>Number (optional)</span>
+              <span>Fixed daily count (optional)</span>
               <input
-                type="number"
-                min={1}
-                step={1}
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 className="field"
                 aria-label="Number to reach"
-                placeholder="—"
+                placeholder="For Istighfar: 1000"
                 value={countTo}
-                onChange={(e) => setCountTo(e.target.value)}
+                onChange={(e) => setCountTo(e.target.value.replace(/\D/g, ""))}
               />
             </label>
             <Button variant="glow" className="plan-add" disabled={busy} onClick={() => void add()}>
@@ -153,19 +156,25 @@ export function Plan({
           {tasks.length ? (
             <>
               <ProgressLine value={tasks.length ? (done / tasks.length) * 100 : 0} />
+              <p className="hold-hint">Hold a target to set its time or fixed daily count.</p>
               <div className="mt-5 grid gap-2">
                 {tasks.map((t) => (
-                  <div className={`plan-row ${taskIsDone(t) ? "is-done" : ""}`} key={t.id}>
+                  <HoldToSet
+                    className={`plan-row ${t.countTo ? "has-count" : ""} ${taskIsDone(t) ? "is-done" : ""} ${t.missed ? "is-missed" : ""}`}
+                    key={t.id}
+                    label={`${t.name}. Hold or press Enter to set this target`}
+                    onHold={() => setEditing(t)}
+                  >
                     {t.countTo ? (
                       <input
                         className="field count-fill"
-                        type="number"
+                        type="text"
                         inputMode="numeric"
-                        min={0}
+                        pattern="[0-9]*"
                         aria-label={`How many ${t.name} completed`}
                         placeholder="0"
                         value={t.count || ""}
-                        onChange={(e) => patch(t.id, { count: Math.max(0, Math.floor(Number(e.target.value) || 0)) })}
+                        onChange={(e) => patch(t.id, { count: Math.max(0, Math.floor(Number(e.target.value.replace(/\D/g, "")) || 0)), missed: false })}
                       />
                     ) : (
                       <input
@@ -173,7 +182,7 @@ export function Plan({
                         type="checkbox"
                         aria-label={`Mark ${t.name} done`}
                         checked={t.done}
-                        onChange={(e) => patch(t.id, { done: e.target.checked })}
+                        onChange={(e) => patch(t.id, { done: e.target.checked, missed: false })}
                       />
                     )}
                     <input
@@ -183,20 +192,22 @@ export function Plan({
                       onChange={(e) => patch(t.id, { name: e.target.value })}
                     />
                     <span className="plan-row-time font-mono text-[10px] text-muted-foreground">
+                      <span className="task-mark" data-mark={taskPoints(t) > 0 ? "positive" : taskPoints(t) < 0 ? "negative" : "open"} title="Target marks">
+                        {taskPoints(t) > 0 ? "+1" : taskPoints(t) < 0 ? "−1" : "0"}
+                      </span>
                       {t.from}–{t.to}
                       {t.countTo ? ` · ${Math.min(t.count, t.countTo)}/${t.countTo}` : ""}
                       {t.seriesId && <span className="block text-violet-soft font-sans">Repeating target</span>}
                     </span>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="size-7 shrink-0"
-                      aria-label={`Remove ${t.name}`}
-                      onClick={() => remove(t.id)}
-                    >
-                      <Trash2 size={13} />
-                    </Button>
-                  </div>
+                    <div className="plan-row-actions">
+                      <Button variant="ghost" size="icon" className="size-8 shrink-0" aria-label={`Set ${t.name} target`} onClick={() => setEditing(t)}>
+                        <Settings2 size={14} />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="size-8 shrink-0" aria-label={`Remove ${t.name}`} onClick={() => remove(t.id)}>
+                        <Trash2 size={13} />
+                      </Button>
+                    </div>
+                  </HoldToSet>
                 ))}
               </div>
             </>
@@ -215,6 +226,11 @@ export function Plan({
           )}
         </div>
       </Panel>
+      <TaskTargetDialog
+        task={editing}
+        onOpenChange={(open) => { if (!open) setEditing(null); }}
+        onSave={(next) => update({ ...day, tasks: tasks.map((t) => t.id === next.id ? next : t) })}
+      />
     </div>
   );
 }

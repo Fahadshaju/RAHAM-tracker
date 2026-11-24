@@ -26,6 +26,8 @@ export const taskSchema = z.object({
   count: z.number().int().min(0).default(0),
   /** The number you fix for it. 0 means the target is finished by ticking it. */
   countTo: z.number().int().min(0).default(0),
+  /** Explicitly missed targets lose a mark; open targets have no negative mark. */
+  missed: z.boolean().optional(),
   seriesId: z.string().optional(),
 });
 export const repeatPlanSchema = z.object({
@@ -55,7 +57,7 @@ export function repeatDates(input: RepeatPlan) {
 export function addRepeatingTask(day: Day, task: Task, date: string): Day {
   const seriesId = task.seriesId ?? task.id;
   if (day.tasks.some((t) => t.seriesId === seriesId)) return day;
-  return { ...day, tasks: [...day.tasks, { ...task, id: `${seriesId}:${date}`, seriesId, done: false, count: 0 }] };
+  return { ...day, tasks: [...day.tasks, { ...task, id: `${seriesId}:${date}`, seriesId, done: false, count: 0, missed: false }] };
 }
 export const daySchema = z.object({
   tasks: z.array(taskSchema).default([]),
@@ -94,6 +96,11 @@ export type Task = Day["tasks"][number];
 /** A numbered target is finished when its count reaches the number you fixed. */
 export function taskIsDone(task: Task) {
   return task.countTo ? task.count >= task.countTo : task.done;
+}
+/** Finished targets earn one mark; only an explicitly missed target loses one. */
+export function taskPoints(task: Task) {
+  if (taskIsDone(task)) return 1;
+  return task.missed ? -1 : 0;
 }
 export function dateKey(date = new Date()) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;

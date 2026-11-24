@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import {
@@ -14,7 +14,6 @@ import {
   Moon,
   Settings2,
   ShieldCheck,
-  Sparkles,
   UserRound,
   Download,
 } from "lucide-react";
@@ -128,10 +127,6 @@ function Index() {
               <span className="sidebar-label">{t.name}</span>
             </Button>
           ))}
-          <Link to="/garden" className="garden-nav-link" aria-label="Jannat Garden" title="Jannat Garden">
-            <Sparkles size={17} />
-            <span className="sidebar-label">Jannat Garden</span>
-          </Link>
         </nav>
         <div className="sidebar-bottom mt-auto">
           <div className="border-t border-border pt-6 px-2 pb-6">

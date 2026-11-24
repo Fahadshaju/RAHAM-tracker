@@ -13,6 +13,9 @@
 - [x] Removed the duplicated "Prayers offered" metric card.
 - [x] Pushed the full codebase to https://github.com/Fahadshaju/RAHAM-tracker (119 files, main branch).
 - [x] Vercel build verified locally: `NITRO_PRESET=vercel bun run build` produces `.vercel/output`; `vercel.json` sets the install and build commands.
+- [x] Hold a prayer or target for quick settings; fixed-count targets use fill-in numeric fields without counters.
+- [x] Remove the Jannat navigation tab while retaining the garden inside Today.
+- [x] Support both hold and tap controls, with visible positive and negative marks for every prayer and target.
 
 ## Open
 - [ ] Deploy on Vercel: user chose assisted deployment; waiting for a Vercel token through the secure form.
