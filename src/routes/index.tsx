@@ -7,7 +7,6 @@ import {
   ChevronRight,
   Cloud,
   Flame,
-  GitBranch,
   LayoutDashboard,
   ListChecks,
   LoaderCircle,
@@ -26,7 +25,6 @@ import { AuthDialog } from "@/components/mizan/auth";
 import { RahamLogo } from "@/components/mizan/shared";
 import { Daily } from "@/components/mizan/daily";
 import { Analytics } from "@/components/mizan/analytics";
-import { Roadmaps } from "@/components/mizan/roadmaps";
 import { Calendar } from "@/components/mizan/calendar";
 import { Plan } from "@/components/mizan/plan";
 import { JournalGarden } from "@/components/garden/journal-garden";
@@ -40,17 +38,17 @@ const sampleOptions = queryOptions({
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "RAHAM — Daily accountability & learning roadmaps" },
+      { title: "RAHAM — Daily accountability & habit tracking" },
       {
         name: "description",
         content:
-          "Balance faith, discipline, and career mastery. Track daily prayers, dhikr, focused work, and synthesize YouTube playlists into one learning roadmap.",
+          "Balance faith, discipline, and career mastery. Track daily prayers, focused work, personal targets, and progress in one private workspace.",
       },
       { property: "og:title", content: "RAHAM — Faith. Discipline. Mastery." },
       {
         property: "og:description",
         content:
-          "A private daily accountability system and unified video-to-roadmap engine for deliberate growth.",
+          "A private daily accountability system for prayer, habits, plans, and deliberate growth.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -62,7 +60,6 @@ export const Route = createFileRoute("/")({
 const tabs = [
   { id: "daily", name: "Today", icon: LayoutDashboard },
   { id: "plan", name: "My plan", icon: ListChecks },
-  { id: "roadmap", name: "Learning", icon: GitBranch },
   { id: "analytics", name: "Progress", icon: Flame },
   { id: "calendar", name: "Calendar", icon: CalendarDays },
 ] as const;
@@ -219,22 +216,18 @@ function Index() {
                   ? "Today, one step at a time."
                   : tab === "plan"
                     ? "Plan your days ahead."
-                    : tab === "roadmap"
-                      ? "Learn with intention."
-                      : tab === "analytics"
-                        ? "Your progress, honestly."
-                        : "Your sacred calendar."}
+                    : tab === "analytics"
+                      ? "Your progress, honestly."
+                      : "Your sacred calendar."}
               </h1>
               <p className="text-xs text-muted-foreground mt-2 tab-enter" key={`${tab}-sub`}>
                 {tab === "daily"
                   ? "Assalamu alaikum. Set what matters today, then finish it."
                   : tab === "plan"
                     ? "A target for one day, or a rhythm for the months ahead."
-                    : tab === "roadmap"
-                      ? "Less passive watching. More deliberate mastery."
-                      : tab === "analytics"
-                        ? "A calm look at the days you showed up."
-                        : "Faith first. Focus protected. Intentions honored."}
+                    : tab === "analytics"
+                      ? "A calm look at the days you showed up."
+                      : "Faith first. Focus protected. Intentions honored."}
               </p>
             </div>
             <div className="text-right">
@@ -300,14 +293,6 @@ function Index() {
               </div>
               <div hidden={tab !== "plan"}>
                 <Plan key={date} date={date} day={journal.day} update={journal.update} repeat={journal.repeat} sample={!user} />
-              </div>
-              <div hidden={tab !== "roadmap"}>
-                <Roadmaps
-                  onAuth={() => setAuthOpen(true)}
-                  day={journal.day}
-                  update={journal.update}
-                  onCalendar={() => changeTab("calendar")}
-                />
               </div>
               {tab === "analytics" && (
                 <Analytics history={journal.history} date={date} sample={!user} />
