@@ -1,9 +1,10 @@
+import { importWithReload } from "./lazy-reload";
 import type { Roadmap } from "./mizan";
 import { roadmapMarkdown } from "./mizan";
 
 // Browser-only event helper; include every section, independent of expanded UI state.
 export async function exportRoadmapPDF(roadmap: Roadmap) {
-  const { jsPDF } = await import("jspdf");
+  const { jsPDF } = await importWithReload(() => import("jspdf"));
   const pdf = new jsPDF({ unit: "mm", format: "a4" });
   const pageHeight = pdf.internal.pageSize.getHeight();
   const margin = 18;

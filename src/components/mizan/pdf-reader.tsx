@@ -1,3 +1,4 @@
+import { importWithReload } from "@/lib/lazy-reload";
 import { useEffect, useRef, useState } from "react";
 
 // Renders a PDF page by page onto canvases in the page itself, so it works
@@ -16,8 +17,8 @@ export function PdfReader({ url, title }: { url: string; title: string }) {
     setState("loading");
     (async () => {
       try {
-        const pdfjs = await import("pdfjs-dist");
-        const worker = await import("pdfjs-dist/build/pdf.worker.min.mjs?url");
+        const pdfjs = await importWithReload(() => import("pdfjs-dist"));
+        const worker = await importWithReload(() => import("pdfjs-dist/build/pdf.worker.min.mjs?url"));
         pdfjs.GlobalWorkerOptions.workerSrc = worker.default;
         const pdf = await pdfjs.getDocument({ url: new URL(url, window.location.href).href }).promise;
         doc = pdf;
