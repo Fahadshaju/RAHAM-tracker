@@ -306,6 +306,7 @@ function Index() {
                   );
                   return mobileGarden ? createPortal(garden, mobileGarden) : garden;
                 })()}
+                <div id="desktop-prayer" className="hidden md:block" />
                 <IstighfarCard day={journal.day} date={date} update={journal.update} repeat={journal.repeat} />
                 <Daily
                   journal={journal}
