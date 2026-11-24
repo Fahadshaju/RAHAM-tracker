@@ -1203,3 +1203,9 @@ body::before {
   .today-stack .journal-garden { order: -2; }
   .today-stack .dashboard-grid { order: -1; margin-bottom: var(--space-section, 24px); }
 }
+.mobile-streak-card .streak-hero { align-items: center; text-align: center; padding-top: 20px; }
+.mobile-streak-card .streak-hero-goal { width: 100%; margin-inline: auto; }
+@media (max-width: 767px) {
+  .journal-garden.is-min { min-height: 0; height: auto; padding: 12px; }
+  .journal-garden.is-min .garden-toggle { position: static; width: 100%; justify-content: center; min-height: 48px; font-size: 15px; }
+}
