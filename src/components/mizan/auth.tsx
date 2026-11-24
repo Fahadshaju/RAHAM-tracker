@@ -116,6 +116,13 @@ export function AuthDialog({
           </DialogDescription>
         </DialogHeader>
         {user && mode !== "password" ? (
+          <>
+          <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3">
+            {user.user_metadata?.["avatar_url"] || user.user_metadata?.["picture"] ? (
+              <img src={user.user_metadata["avatar_url"] || user.user_metadata["picture"]} alt="" referrerPolicy="no-referrer" className="h-10 w-10 shrink-0 rounded-full" />
+            ) : <span />}
+            <span className="min-w-0 truncate text-sm">{user.user_metadata?.["full_name"] || user.user_metadata?.["name"] || user.email}</span>
+          </div>
           <Button
             variant="outline"
             onClick={async () => {
@@ -125,6 +132,7 @@ export function AuthDialog({
           >
             Sign out
           </Button>
+          </>
         ) : (
           <>
             {mode !== "password" && (
