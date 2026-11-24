@@ -267,7 +267,7 @@ function Index() {
               </p>
               <Button
                 variant="link"
-                className="h-6 text-[11px] p-0 shrink-0"
+                className="h-6 text-[11px] p-0 shrink-0 text-foreground underline"
                 onClick={() => setAuthOpen(true)}
               >
                 Sign in <ChevronRight size={12} />
