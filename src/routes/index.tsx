@@ -24,7 +24,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { getSampleDay } from "@/lib/mizan.functions";
 import { useMizanJournal } from "@/hooks/use-mizan-journal";
-import { AuthDialog } from "@/components/mizan/auth";
+import { AuthDialog, useMizanAuth } from "@/components/mizan/auth";
 import { RahamLogo } from "@/components/mizan/shared";
 import { Daily } from "@/components/mizan/daily";
 import { Plan } from "@/components/mizan/plan";
@@ -101,9 +101,10 @@ function Index() {
       setHijri("");
     }
   }, [date]);
+  const { recovery } = useMizanAuth();
   useEffect(() => {
-    if (window.location.hash.includes("type=recovery")) setAuthOpen(true);
-  }, []);
+    if (recovery || window.location.hash.includes("type=recovery")) setAuthOpen(true);
+  }, [recovery]);
   const gregorian = new Date(`${date}T12:00:00`).toLocaleDateString("en-US", {
     weekday: "long",
     month: "long",
