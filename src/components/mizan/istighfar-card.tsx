@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Day, RepeatPlan } from "@/lib/mizan";
 
@@ -21,6 +22,7 @@ export function IstighfarCard({ day, date, update, repeat }: Props) {
   const [end, setEnd] = useState(month);
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState(false);
+  const [open, setOpen] = useState(false);
   const done = task ? Math.min(task.count, task.countTo) : 0;
   const pct = task ? Math.round((done / task.countTo) * 100) : 0;
 
@@ -46,19 +48,20 @@ export function IstighfarCard({ day, date, update, repeat }: Props) {
   }
 
   return (
-    <section className="istighfar-card rounded-xl border border-border bg-card/60 p-5 mb-6">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
+    <section className="istighfar-card rounded-xl border border-border bg-card/60 p-4 mb-6">
+      <button type="button" className="w-full flex items-center justify-between gap-2 text-left" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
         <h2 className="text-lg font-semibold">Istighfar</h2>
-        <span className="text-sm text-muted-foreground">
-          {task ? `${done} / ${task.countTo} · ${pct}%` : "No target for today yet"}
+        <span className="flex items-center gap-2 text-sm text-muted-foreground">
+          {task ? `${done} / ${task.countTo} · ${pct}%` : "No target yet"}
+          <ChevronDown size={16} className={`transition-transform ${open ? "rotate-180" : ""}`} />
         </span>
-      </div>
+      </button>
       {task && (
         <>
           <div className="mt-3 h-2 rounded-full bg-muted overflow-hidden">
             <div className="h-full bg-primary transition-[width] duration-500" style={{ width: `${pct}%` }} />
           </div>
-          <label className="mt-4 grid gap-1 text-sm">
+          {open && <label className="mt-4 grid gap-1 text-sm">
             Completed today
             <input
               className="field h-12 text-lg"
@@ -71,10 +74,10 @@ export function IstighfarCard({ day, date, update, repeat }: Props) {
                 void update({ ...day, tasks: day.tasks.map((t) => (t.id === task.id ? { ...t, count: c, done: c >= t.countTo, missed: false } : t)) });
               }}
             />
-          </label>
+          </label>}
         </>
       )}
-      <div className="mt-4 grid grid-cols-1 sm:grid-cols-[1fr_1fr_1fr_auto] gap-3 items-end">
+      {open && <div className="mt-4 grid grid-cols-1 sm:grid-cols-[1fr_1fr_1fr_auto] gap-3 items-end">
         <label className="grid gap-1 text-sm">
           Daily target
           <input className="field h-11" type="text" inputMode="numeric" value={target} onChange={(e) => setTarget(e.target.value.replace(/\D/g, ""))} />
@@ -88,7 +91,7 @@ export function IstighfarCard({ day, date, update, repeat }: Props) {
           <input className="field h-11" type="month" value={end} onChange={(e) => setEnd(e.target.value)} />
         </label>
         <Button className="h-11" onClick={apply} disabled={busy}>{busy ? "Saving…" : "Set target"}</Button>
-      </div>
+      </div>}
       {msg && <p className="mt-2 text-sm text-muted-foreground" role="status">{msg}</p>}
     </section>
   );
