@@ -12,13 +12,15 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 
-const AuthContext = createContext<{ user: User | null; ready: boolean }>({
+const AuthContext = createContext<{ user: User | null; ready: boolean; recovery: boolean }>({
   user: null,
   ready: false,
+  recovery: false,
 });
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [ready, setReady] = useState(false);
+  const [recovery, setRecovery] = useState(false);
   const queryClient = useQueryClient();
   useEffect(() => {
     void supabase.auth.getSession().then(({ data }) => {
@@ -26,6 +28,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setReady(true);
     });
     const { data } = supabase.auth.onAuthStateChange((event, session) => {
+      // Reset links sign the user in with a recovery session; flag it so the new-password form opens.
+      if (event === "PASSWORD_RECOVERY") {
+        setUser(session?.user ?? null);
+        setReady(true);
+        setRecovery(true);
+        return;
+      }
       if (
         event === "INITIAL_SESSION" ||
         event === "SIGNED_IN" ||
@@ -41,7 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
     return () => data.subscription.unsubscribe();
   }, [queryClient]);
-  return <AuthContext.Provider value={{ user, ready }}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={{ user, ready, recovery }}>{children}</AuthContext.Provider>;
 }
 export const useMizanAuth = () => useContext(AuthContext);
 export function AuthDialog({
@@ -55,11 +64,11 @@ export function AuthDialog({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
-  const { user } = useMizanAuth();
+  const { user, recovery } = useMizanAuth();
   useEffect(() => {
     const hash = window.location.hash;
-    if (hash.includes("type=recovery")) setMode("password");
-  }, []);
+    if (recovery || hash.includes("type=recovery")) setMode("password");
+  }, [recovery]);
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
