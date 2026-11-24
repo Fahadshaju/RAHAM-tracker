@@ -249,6 +249,7 @@ function friendlyAuthError(msg: string) {
   if (/invalid login credentials/i.test(msg)) return "Email or password is wrong. If you signed up with Google, use Continue with Google or tap Forgot password to set a password.";
   if (/email not confirmed/i.test(msg)) return "Please confirm your email first — check your inbox for the link.";
   if (/token has expired|invalid.*(otp|token)/i.test(msg)) return "That code is wrong or expired. Ask for a new code.";
+  if (/weak|easy to guess|pwned/i.test(msg)) return "That password is too common and easy to guess. Please choose a stronger one (mix words, numbers and symbols).";
   if (/rate limit|too many/i.test(msg)) return "Too many tries. Please wait a minute and try again.";
   if (/already registered/i.test(msg)) return "This email already has an account. Please sign in instead.";
   return msg;
