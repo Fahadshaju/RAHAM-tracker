@@ -35,3 +35,4 @@
 - Quran juz open in an in-page reader (done)
 - Istighfar main-page target, mobile speed-ups, GitHub push d809d91 (done)
 - Mobile layout changes + PageSpeed 90+ work (done; Vercel score not re-measured)
+- Progress tab not showing on live Vercel site — investigate

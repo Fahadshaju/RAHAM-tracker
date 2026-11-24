@@ -1,13 +1,11 @@
 // Main-page garden: grows from the journal's prayers and targets; withers on a negative day.
 import { lazyWithReload } from "@/lib/lazy-reload";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import { Sprout, Skull } from "lucide-react";
 import { HEAVEN_TIER_NAMES, HELL_TIER_NAMES, heavenTier, hellDepth, nextHeavenTier, HALF, forestLevel, freeSpot, journalGarden, unlocked, type GardenTree } from "@/lib/garden";
 import { prayerStreak, type Day } from "@/lib/mizan";
-import { Switch } from "@/components/ui/switch";
+import { StreakHero } from "./streak-hero";
 
-const GOALS = [7, 21, 40, 100];
 
 const GardenScene = lazyWithReload(() => import("./scene"));
 
@@ -82,40 +80,6 @@ export function JournalGarden({ history, date }: { history: Record<string, Day>;
     const t = setTimeout(() => setCelebrate(false), 6500);
     return () => clearTimeout(t);
   }, [reached, goal, ps.current, date]);
-  const save = (key: string, v: string) => {
-    localStorage.setItem(key, v);
-    window.dispatchEvent(new Event("raham-settings"));
-  };
-  // On phones the streak number sits above the Prayer tracker, apart from the garden.
-  const [streakSlot, setStreakSlot] = useState<HTMLElement | null>(null);
-  useEffect(() => {
-    setStreakSlot(mobile ? document.getElementById("mobile-streak") : null);
-  }, [mobile]);
-  const streakHero = (
-      <div className="streak-hero">
-        <span className="streak-hero-label">Prayer streak</span>
-        <span className="streak-hero-number" key={ps.current}>{ps.current}</span>
-        <span className="streak-hero-unit">{ps.current === 1 ? "day" : "days"} · best {ps.longest}</span>
-        <div className="streak-hero-goal">
-          <div className="flex items-center justify-between text-[12px]">
-            <span>Milestone: <b style={{ color: "var(--gold)" }}>{goal} days</b></span>
-            <span className="text-muted-foreground">{pct}%</span>
-          </div>
-          <div className="streak-hero-bar"><i style={{ width: `${pct}%` }} /></div>
-          <div className="flex flex-wrap gap-1.5">
-            {GOALS.map((n) => (
-              <button key={n} type="button" className={`streak-goal-chip${n === goal ? " is-on" : ""}`} onClick={() => { setGoal(n); save("raham-streak-goal", String(n)); }}>{n}</button>
-            ))}
-            <input aria-label="Custom streak target" type="number" min={1} max={3650} placeholder="Custom" className="streak-goal-chip w-[84px] bg-transparent" onChange={(e) => { const n = Math.floor(Number(e.target.value)); if (n > 0 && n <= 3650) { setGoal(n); save("raham-streak-goal", String(n)); } }} />
-          </div>
-          <label className="flex items-center justify-between gap-2 text-[12px] text-muted-foreground">
-            <span>Compulsory: {six ? "all 6 incl. Tahajjud" : "5 obligatory prayers"}</span>
-            <Switch aria-label="Make Tahajjud compulsory" checked={six} onCheckedChange={(v) => { setSix(v); save("raham-six-prayers", v ? "1" : "0"); }} />
-          </label>
-          {ps.current >= goal && <span className="pill" style={{ color: "var(--gold)" }}>Milestone reached — set the next one</span>}
-        </div>
-      </div>
-  );
   return (
     <section className={`panel journal-garden mb-5${mobile && !mounted ? " is-min" : ""}`}>
       {mobile && (
@@ -124,7 +88,8 @@ export function JournalGarden({ history, date }: { history: Record<string, Day>;
         </button>
       )}
       <div className="journal-garden-canvas">{mounted && <Suspense fallback={null}><GardenScene trees={trees} level={level} upgrades={unlocked(g.streak)} withered={g.withered} tier={tier} depth={Math.max(1, depth)} /></Suspense>}</div>
-      {streakSlot ? createPortal(<section className="panel journal-garden mobile-streak-card mb-5">{streakHero}</section>, streakSlot) : streakHero}
+      {/* Phones show the streak in its own card above the Prayer tracker (see Daily). */}
+      <div className="streak-desktop"><StreakHero history={history} date={date} /></div>
       {celebrate && (
         <div className="streak-celebrate" role="status" onClick={() => setCelebrate(false)}>
           {Array.from({ length: 28 }, (_, i) => (

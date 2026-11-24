@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { StreakHero } from "@/components/garden/streak-hero";
 import {
   Moon,
   Sunrise,
@@ -661,7 +662,7 @@ export function Daily({
         </div>
       </Panel>
       <div className="dashboard-grid">
-        <div id="mobile-streak" className="md:hidden min-w-0" />
+        <div id="mobile-streak" className="md:hidden min-w-0"><section className="panel journal-garden mobile-streak-card mb-5"><StreakHero history={history} date={date} /></section></div>
         {desktopPrayer ? createPortal(prayerPanel, desktopPrayer) : prayerPanel}
         <Panel
           title="Nafs & purity"

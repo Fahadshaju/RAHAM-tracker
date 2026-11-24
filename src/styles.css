@@ -1213,3 +1213,7 @@ body::before {
   #mobile-streak:empty { min-height: 452px; }
   #mobile-garden:empty { min-height: 96px; }
 }
+
+/* Desktop shows the streak over the garden; phones show it in its own card (server-rendered). */
+.streak-desktop { display: contents; }
+@media (max-width: 767px) { .streak-desktop { display: none; } }
