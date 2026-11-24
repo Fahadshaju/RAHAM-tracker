@@ -286,7 +286,7 @@ function Index() {
             </div>
           ) : (
             <>
-              <div hidden={tab !== "daily"}>
+              <div hidden={tab !== "daily"} className="today-stack">
                 <Suspense fallback={<div className="h-[420px] rounded-xl bg-card/40 mb-6" />}>
                   <JournalGarden history={journal.history} date={date} />
                 </Suspense>
@@ -300,6 +300,7 @@ function Index() {
               <div hidden={tab !== "plan"}>
                 <Plan key={date} date={date} day={journal.day} update={journal.update} repeat={journal.repeat} sample={!user} />
               </div>
+              <div id="mobile-deepwork" hidden={tab !== "analytics"} className="md:hidden mb-6" />
               <Suspense fallback={<Fallback />}>
                 {tab === "analytics" && <Analytics history={journal.history} date={date} sample={!user} />}
                 {tab === "quran" && <Quran />}

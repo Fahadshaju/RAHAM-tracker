@@ -15,8 +15,18 @@ function seeded(seed: number) {
 }
 
 export function JournalGarden({ history, date }: { history: Record<string, Day>; date: string }) {
+  // Phones start with the 3D garden minimized (it is the heaviest part of the page);
+  // computers load it once the page is idle so the first screen appears quickly.
   const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const [mobile, setMobile] = useState(false);
+  useEffect(() => {
+    const isMobile = window.matchMedia("(max-width: 767px)").matches;
+    setMobile(isMobile);
+    if (isMobile) return;
+    const w = window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number };
+    if (w.requestIdleCallback) w.requestIdleCallback(() => setMounted(true), { timeout: 2500 });
+    else setTimeout(() => setMounted(true), 1200);
+  }, []);
   const g = journalGarden(history, date);
   // Same tree positions every time for the same count; new trees get a fresh planting time so they grow.
   const born = useRef<number[]>([]);
@@ -66,7 +76,12 @@ export function JournalGarden({ history, date }: { history: Record<string, Day>;
     window.dispatchEvent(new Event("raham-settings"));
   };
   return (
-    <section className="panel journal-garden mb-5">
+    <section className={`panel journal-garden mb-5${mobile && !mounted ? " is-min" : ""}`}>
+      {mobile && (
+        <button type="button" className="garden-toggle pill" onClick={() => setMounted((v) => !v)} aria-expanded={mounted}>
+          {mounted ? "Minimize garden ▴" : "Open 3D garden ▾"}
+        </button>
+      )}
       <div className="journal-garden-canvas">{mounted && <Suspense fallback={null}><GardenScene trees={trees} level={level} upgrades={unlocked(g.streak)} withered={g.withered} tier={tier} depth={Math.max(1, depth)} /></Suspense>}</div>
       <div className="streak-hero">
         <span className="streak-hero-label">Prayer streak</span>

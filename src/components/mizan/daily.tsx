@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   Moon,
   Sunrise,
@@ -75,6 +76,15 @@ export function Daily({
   const endAt = useRef(0);
   const startSeconds = useRef(1500);
   const [now, setNow] = useState<Date | null>(null);
+  // On phones the Deep work timer is shown in the Progress tab instead of Today.
+  const [mobileDeep, setMobileDeep] = useState<HTMLElement | null>(null);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)");
+    const pick = () => setMobileDeep(mq.matches ? document.getElementById("mobile-deepwork") : null);
+    pick();
+    mq.addEventListener("change", pick);
+    return () => mq.removeEventListener("change", pick);
+  }, []);
   const [location, setLocation] = useState("Sample prayer times");
   const [locating, setLocating] = useState(false);
   const [repairChecks, setRepairChecks] = useState<boolean[]>([false, false, false, false]);
@@ -266,6 +276,107 @@ export function Daily({
       score: history[key] ? scoreDay(history[key]).score : 0,
     };
   });
+  const deepWork = (
+        <Panel
+          title="Deep work"
+          icon={<Code2 />}
+          action={
+            <span className="pill muted-pill">
+              <span className="size-1.5 rounded-full bg-violet-soft" />
+              {running ? "Focusing" : "Ready to focus"}
+            </span>
+          }
+        >
+          <div className="px-[22px] pb-5">
+            <p className="timer-number">
+              {String(Math.floor(workSeconds / 60)).padStart(2, "0")}
+              <span className="text-muted-foreground">:</span>
+              {String(workSeconds % 60).padStart(2, "0")}
+            </p>
+            <div className="flex justify-center gap-2 mb-5">
+              {[25, 50, 90].map((n) => (
+                <Button
+                  key={n}
+                  size="sm"
+                  variant={sessionLength === n ? "secondary" : "ghost"}
+                  className="h-6 text-[9px] px-2"
+                  disabled={running}
+                  onClick={() => {
+                    setSessionLength(n);
+                    setWorkSeconds(n * 60);
+                    startSeconds.current = n * 60;
+                  }}
+                >
+                  {n} min
+                </Button>
+              ))}
+            </div>
+            <input
+              aria-label="Focus session task"
+              className="field text-center mb-3"
+              value={workLabel}
+              onChange={(e) => setWorkLabel(e.target.value)}
+            />
+            <div className="flex gap-2">
+              <Button
+                variant="glow"
+                className="flex-1 h-9 text-[11px]"
+                onClick={() => {
+                  if (running) setRunning(false);
+                  else {
+                    endAt.current = Date.now() + workSeconds * 1000;
+                    setRunning(true);
+                  }
+                }}
+              >
+                {running ? <Pause /> : <Play />}
+                {running ? "Pause session" : "Start focus session"}
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                title="Reset timer"
+                aria-label="Reset timer"
+                onClick={() => {
+                  setRunning(false);
+                  setWorkSeconds(sessionLength * 60);
+                  startSeconds.current = sessionLength * 60;
+                }}
+              >
+                <RotateCcw />
+              </Button>
+            </div>
+            {workSeconds < sessionLength * 60 && (
+              <Button
+                variant="link"
+                size="sm"
+                className="w-full text-xs mt-1"
+                onClick={finishSession}
+              >
+                Finish & log session
+              </Button>
+            )}
+            <div className="flex justify-between text-[10px] text-muted-foreground mt-5 mb-2">
+              <span>Focused time today</span>
+              <span className="font-mono">{formatMinutes(day.workMinutes)}</span>
+            </div>
+            <ProgressLine value={Math.min(100, (day.workMinutes / 360) * 100)} />
+            {day.sessions.length > 0 && (
+              <div className="mt-4 border-t border-border pt-3 space-y-2">
+                {day.sessions.slice(-2).map((s, i) => (
+                  <div key={i} className="flex justify-between text-[10px]">
+                    <span className="text-muted-foreground truncate max-w-[70%]">{s.label}</span>
+                    <span className="font-mono">{s.minutes}m</span>
+                  </div>
+                ))}
+              </div>
+            )}
+            {day.careerRoadmap && (
+              <p className="text-xs text-violet-soft mt-4">Learning · {day.careerRoadmap}</p>
+            )}
+          </div>
+        </Panel>
+  );
   return (
     <div className="enter-view">
       <Reminder date={date} />
@@ -647,105 +758,7 @@ export function Daily({
         </div>
       </div>
       <div className="dashboard-bottom">
-        <Panel
-          title="Deep work"
-          icon={<Code2 />}
-          action={
-            <span className="pill muted-pill">
-              <span className="size-1.5 rounded-full bg-violet-soft" />
-              {running ? "Focusing" : "Ready to focus"}
-            </span>
-          }
-        >
-          <div className="px-[22px] pb-5">
-            <p className="timer-number">
-              {String(Math.floor(workSeconds / 60)).padStart(2, "0")}
-              <span className="text-muted-foreground">:</span>
-              {String(workSeconds % 60).padStart(2, "0")}
-            </p>
-            <div className="flex justify-center gap-2 mb-5">
-              {[25, 50, 90].map((n) => (
-                <Button
-                  key={n}
-                  size="sm"
-                  variant={sessionLength === n ? "secondary" : "ghost"}
-                  className="h-6 text-[9px] px-2"
-                  disabled={running}
-                  onClick={() => {
-                    setSessionLength(n);
-                    setWorkSeconds(n * 60);
-                    startSeconds.current = n * 60;
-                  }}
-                >
-                  {n} min
-                </Button>
-              ))}
-            </div>
-            <input
-              aria-label="Focus session task"
-              className="field text-center mb-3"
-              value={workLabel}
-              onChange={(e) => setWorkLabel(e.target.value)}
-            />
-            <div className="flex gap-2">
-              <Button
-                variant="glow"
-                className="flex-1 h-9 text-[11px]"
-                onClick={() => {
-                  if (running) setRunning(false);
-                  else {
-                    endAt.current = Date.now() + workSeconds * 1000;
-                    setRunning(true);
-                  }
-                }}
-              >
-                {running ? <Pause /> : <Play />}
-                {running ? "Pause session" : "Start focus session"}
-              </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                title="Reset timer"
-                aria-label="Reset timer"
-                onClick={() => {
-                  setRunning(false);
-                  setWorkSeconds(sessionLength * 60);
-                  startSeconds.current = sessionLength * 60;
-                }}
-              >
-                <RotateCcw />
-              </Button>
-            </div>
-            {workSeconds < sessionLength * 60 && (
-              <Button
-                variant="link"
-                size="sm"
-                className="w-full text-xs mt-1"
-                onClick={finishSession}
-              >
-                Finish & log session
-              </Button>
-            )}
-            <div className="flex justify-between text-[10px] text-muted-foreground mt-5 mb-2">
-              <span>Focused time today</span>
-              <span className="font-mono">{formatMinutes(day.workMinutes)}</span>
-            </div>
-            <ProgressLine value={Math.min(100, (day.workMinutes / 360) * 100)} />
-            {day.sessions.length > 0 && (
-              <div className="mt-4 border-t border-border pt-3 space-y-2">
-                {day.sessions.slice(-2).map((s, i) => (
-                  <div key={i} className="flex justify-between text-[10px]">
-                    <span className="text-muted-foreground truncate max-w-[70%]">{s.label}</span>
-                    <span className="font-mono">{s.minutes}m</span>
-                  </div>
-                ))}
-              </div>
-            )}
-            {day.careerRoadmap && (
-              <p className="text-xs text-violet-soft mt-4">Learning · {day.careerRoadmap}</p>
-            )}
-          </div>
-        </Panel>
+        {mobileDeep ? createPortal(deepWork, mobileDeep) : deepWork}
         <Panel
           title="Your consistency"
           icon={<Flame />}

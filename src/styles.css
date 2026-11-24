@@ -6,6 +6,8 @@
  *   src/routes/__root.tsx and name the family in a --font-* token in @theme inline below.
  */
 @import "tailwindcss" source(none);
+@import "@fontsource-variable/plus-jakarta-sans";
+@import "@fontsource-variable/jetbrains-mono";
 @source "../src";
 @import "tw-animate-css";
 
@@ -30,9 +32,9 @@
  */
 
 @theme inline {
-  --font-sans: "Plus Jakarta Sans", "Segoe UI", sans-serif;
-  --font-display: "Plus Jakarta Sans", "Segoe UI", sans-serif;
-  --font-mono: "JetBrains Mono", monospace;
+  --font-sans: "Plus Jakarta Sans Variable", "Plus Jakarta Sans", "Segoe UI", sans-serif;
+  --font-display: "Plus Jakarta Sans Variable", "Plus Jakarta Sans", "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono Variable", "JetBrains Mono", monospace;
   --text-xs: 0.875rem;
   --text-xs--line-height: 1.6;
   --text-sm: 0.9375rem;
@@ -1188,4 +1190,16 @@ body::before {
 @media (max-width: 480px) {
   .prayer-name > p { flex-wrap: wrap; }
   .target-mark-choices { grid-template-columns: 1fr; }
+}
+
+/* Phone layout: minimized garden tab, centered streak, prayer tracker first, deep work lives in Progress */
+.garden-toggle { position: absolute; z-index: 3; right: 12px; top: 12px; }
+@media (max-width: 767px) {
+  .journal-garden.is-min .journal-garden-canvas, .journal-garden.is-min .journal-garden-hud { display: none; }
+  .journal-garden .streak-hero { align-items: center; text-align: center; padding-top: 44px; }
+  .journal-garden .streak-hero-goal { width: 100%; margin-inline: auto; }
+  .today-stack { display: flex; flex-direction: column; }
+  .today-stack > .enter-view { display: contents; }
+  .today-stack .journal-garden { order: -2; }
+  .today-stack .dashboard-grid { order: -1; margin-bottom: var(--space-section, 24px); }
 }
