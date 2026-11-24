@@ -43,15 +43,23 @@ export const readYouTubeCatalog = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const key = process.env["UDC_YOUTUBE_DATA_API_API_KEY"];
     const apiKey = process.env["LOVABLE_API_KEY"];
-    if (!key || !apiKey)
+    // Outside Lovable hosting (e.g. Vercel) connector keys are absent; fall back to a plain
+    // Google YouTube Data API key in YOUTUBE_API_KEY.
+    const directKey = process.env["YOUTUBE_API_KEY"];
+    if ((!key || !apiKey) && !directKey)
       throw new Error(
-        "YouTube is not connected yet. Connect YouTube Data API in project settings.",
+        "YouTube is not set up on this site yet. Add a YOUTUBE_API_KEY environment variable in your hosting settings.",
       );
     const api = async (path: string, params: Record<string, string>) => {
-      const response = await fetch(
-        `https://connector-gateway.lovable.dev/udc_youtube_data_api/${path}?${new URLSearchParams(params)}`,
-        { headers: { Authorization: `Bearer ${apiKey}`, "X-Connection-Api-Key": key } },
-      );
+      const response =
+        key && apiKey
+          ? await fetch(
+              `https://connector-gateway.lovable.dev/udc_youtube_data_api/${path}?${new URLSearchParams(params)}`,
+              { headers: { Authorization: `Bearer ${apiKey}`, "X-Connection-Api-Key": key } },
+            )
+          : await fetch(
+              `https://www.googleapis.com/youtube/v3/${path}?${new URLSearchParams({ ...params, key: directKey ?? "" })}`,
+            );
       if (!response.ok) {
         const text = await response.text();
         console.error(`YouTube ${response.status}: ${text}`);
