@@ -157,15 +157,16 @@ export function Plan({
                 {tasks.map((t) => (
                   <div className={`plan-row ${taskIsDone(t) ? "is-done" : ""}`} key={t.id}>
                     {t.countTo ? (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="size-7 shrink-0"
-                        aria-label={`Count ${t.name} up by one`}
-                        onClick={() => patch(t.id, { count: t.count + 1 })}
-                      >
-                        <Plus size={14} />
-                      </Button>
+                      <input
+                        className="field count-fill"
+                        type="number"
+                        inputMode="numeric"
+                        min={0}
+                        aria-label={`How many ${t.name} completed`}
+                        placeholder="0"
+                        value={t.count || ""}
+                        onChange={(e) => patch(t.id, { count: Math.max(0, Math.floor(Number(e.target.value) || 0)) })}
+                      />
                     ) : (
                       <input
                         className="prayer-check"

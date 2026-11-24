@@ -323,22 +323,19 @@ export function Daily({
                 {day.tasks.map((t) => (
                   <div className={`plan-row ${taskIsDone(t) ? "is-done" : ""}`} key={t.id}>
                     {t.countTo ? (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="size-7 shrink-0"
-                        aria-label={`Count ${t.name} up by one`}
-                        onClick={() =>
-                          void update({
-                            ...day,
-                            tasks: day.tasks.map((x) =>
-                              x.id === t.id ? { ...x, count: x.count + 1 } : x,
-                            ),
-                          })
-                        }
-                      >
-                        <Plus size={14} />
-                      </Button>
+                      <input
+                        className="field count-fill"
+                        type="number"
+                        inputMode="numeric"
+                        min={0}
+                        aria-label={`How many ${t.name} completed today`}
+                        placeholder="0"
+                        value={t.count || ""}
+                        onChange={(e) => {
+                          const n = Math.max(0, Math.floor(Number(e.target.value) || 0));
+                          void update({ ...day, tasks: day.tasks.map((x) => (x.id === t.id ? { ...x, count: n } : x)) });
+                        }}
+                      />
                     ) : (
                       <input
                         className="prayer-check"
@@ -577,7 +574,7 @@ export function Daily({
                         <span
                           key={m.name}
                           title={`${m.points} points`}
-                          className={`text-[10px] rounded-full border px-2 py-1 transition-all duration-500 ${got ? "border-gold text-gold animate-in zoom-in-75" : "border-border text-muted-foreground opacity-50"}`}
+                          className={`text-[10px] rounded-full border px-2 py-1 transition-all duration-500 ${got ? "badge-earned border-gold text-gold animate-in zoom-in-75" : "border-border text-muted-foreground opacity-50"}`}
                         >
                           {got ? "★" : "☆"} {m.name} · {m.points}
                         </span>

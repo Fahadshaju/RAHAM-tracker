@@ -110,3 +110,30 @@ export function journalGarden(history: Record<string, Day>, today: string) {
     withered: todayPoints < 0,
   };
 }
+
+/** Prayer-streak days needed to unlock each Heaven tier (tier = index). */
+export const HEAVEN_TIERS = [0, 3, 7, 14, 30, 60] as const;
+export const HEAVEN_TIER_NAMES = ["Seedling oasis", "Lantern grove", "Fruit gardens", "Domed sanctuary", "Rivers of light", "Highest Firdaus"] as const;
+export function heavenTier(prayerStreak: number) {
+  let t = 0;
+  HEAVEN_TIERS.forEach((need, i) => { if (prayerStreak >= need) t = i; });
+  return t;
+}
+export function nextHeavenTier(prayerStreak: number) {
+  const t = heavenTier(prayerStreak);
+  return t + 1 < HEAVEN_TIERS.length ? { name: HEAVEN_TIER_NAMES[t + 1]!, inDays: HEAVEN_TIERS[t + 1]! - prayerStreak } : null;
+}
+export const HELL_TIER_NAMES = ["", "Smouldering ground", "Fire pits", "Burning wasteland", "Abyss of flame"] as const;
+/** Consecutive negative-point days ending today (capped at 4); 0 when today is not negative. */
+export function hellDepth(history: Record<string, Day>, today: string) {
+  let n = 0;
+  const d = new Date(`${today}T00:00:00Z`);
+  while (n < 4) {
+    const key = d.toISOString().slice(0, 10);
+    const day = history[key];
+    if (!day || dayGardenPoints(day) >= 0) break;
+    n++;
+    d.setUTCDate(d.getUTCDate() - 1);
+  }
+  return n;
+}

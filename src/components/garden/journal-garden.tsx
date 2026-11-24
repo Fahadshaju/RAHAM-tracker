@@ -1,7 +1,7 @@
 // Main-page garden: grows from the journal's prayers and targets; withers on a negative day.
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { Sprout, Skull } from "lucide-react";
-import { HALF, forestLevel, freeSpot, journalGarden, unlocked, type GardenTree } from "@/lib/garden";
+import { HEAVEN_TIER_NAMES, HELL_TIER_NAMES, heavenTier, hellDepth, nextHeavenTier, HALF, forestLevel, freeSpot, journalGarden, unlocked, type GardenTree } from "@/lib/garden";
 import { prayerStreak, type Day } from "@/lib/mizan";
 import { Switch } from "@/components/ui/switch";
 
@@ -46,6 +46,9 @@ export function JournalGarden({ history, date }: { history: Record<string, Day>;
     return () => window.removeEventListener("raham-settings", read);
   }, []);
   const ps = prayerStreak(history, date, six);
+  const tier = heavenTier(ps.current);
+  const next = nextHeavenTier(ps.current);
+  const depth = hellDepth(history, date);
   const pct = Math.min(100, Math.round((ps.current / goal) * 100));
   const reached = mounted && ps.current >= goal;
   const [celebrate, setCelebrate] = useState(false);
@@ -64,7 +67,7 @@ export function JournalGarden({ history, date }: { history: Record<string, Day>;
   };
   return (
     <section className="panel journal-garden mb-5">
-      <div className="journal-garden-canvas">{mounted && <Suspense fallback={null}><GardenScene trees={trees} level={level} upgrades={unlocked(g.streak)} withered={g.withered} /></Suspense>}</div>
+      <div className="journal-garden-canvas">{mounted && <Suspense fallback={null}><GardenScene trees={trees} level={level} upgrades={unlocked(g.streak)} withered={g.withered} tier={tier} depth={Math.max(1, depth)} /></Suspense>}</div>
       <div className="streak-hero">
         <span className="streak-hero-label">Prayer streak</span>
         <span className="streak-hero-number" key={ps.current}>{ps.current}</span>
@@ -100,11 +103,13 @@ export function JournalGarden({ history, date }: { history: Record<string, Day>;
           </div>
         </div>
       )}
-      <div className="journal-garden-hud">
-        <span className="pill">{g.withered ? <Skull size={11} /> : <Sprout size={11} />} {g.withered ? "Garden withering" : "Garden growing"}</span>
+      <details className="journal-garden-hud">
+        <summary className="pill">{g.withered ? <Skull size={11} /> : <Sprout size={11} />} {g.withered ? "Garden withering" : "Garden growing"}</summary>
         <span className="text-[11px]">Trees: <b style={{ color: "var(--gold)" }}>{g.trees}</b> · Level {level} · Today {g.todayPoints >= 0 ? "+" : ""}{g.todayPoints}</span>
+        <span className="text-[11px]" style={{ color: g.withered ? "var(--destructive)" : "var(--gold)" }}>{g.withered ? `Hell · depth ${Math.max(1, depth)}/4 — ${HELL_TIER_NAMES[Math.max(1, depth)]}` : `Heaven · tier ${tier}/5 — ${HEAVEN_TIER_NAMES[tier]}`}</span>
+        {!g.withered && next && <span className="text-[10px] text-muted-foreground">Next: {next.name} in {next.inDays} {next.inDays === 1 ? "day" : "days"} of prayer</span>}
         <span className="text-[10px] text-muted-foreground">+1 per prayer · +1 per target (up to 10) · −2 per missed prayer</span>
-      </div>
+      </details>
     </section>
   );
 }

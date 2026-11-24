@@ -4,9 +4,10 @@ import { Canvas, useFrame, useThree, type ThreeEvent } from "@react-three/fiber"
 import { OrbitControls, Environment, Lightformer } from "@react-three/drei";
 import * as THREE from "three";
 import type { OrbitControls as OrbitImpl } from "three-stdlib";
+import { HeavenDetails, HellDetails } from "./details";
 import { HALF, MAX_TREES, growth, riverZ, type GardenTree } from "@/lib/garden";
 
-type Props = { trees: GardenTree[]; level: number; upgrades: number; withered?: boolean };
+type Props = { trees: GardenTree[]; level: number; upgrades: number; withered?: boolean; tier?: number; depth?: number };
 
 // Tiny seeded random so every tree/flower keeps its look across refreshes.
 function rng(seed: number) {
@@ -442,14 +443,14 @@ function CameraRig({ fly }: { fly: React.MutableRefObject<THREE.Vector3 | null> 
       ref={controls}
       enablePan={false}
       enableDamping
-      minDistance={5}
+      minDistance={2.2}
       maxDistance={30}
       maxPolarAngle={Math.PI / 2.15}
     />
   );
 }
 
-export default function GardenScene({ trees, level, upgrades, withered = false }: Props) {
+export default function GardenScene({ trees, level, upgrades, withered = false, tier = 0, depth = 1 }: Props) {
   const fly = useRef<THREE.Vector3 | null>(null);
   return (
     <Canvas
@@ -460,13 +461,13 @@ export default function GardenScene({ trees, level, upgrades, withered = false }
       onCreated={({ gl }) => (gl.toneMapping = THREE.ACESFilmicToneMapping)}
     >
       {/* Golden-hour sky and haze */}
-      <color attach="background" args={[withered ? "#1a0f12" : "#120c22"]} />
-      <fog attach="fog" args={[withered ? "#1a0f12" : "#120c22", 26, 60]} />
-      <hemisphereLight args={[withered ? "#7a5a5a" : "#9a8cff", "#2a3a24", 0.95]} />
+      <color attach="background" args={[withered ? "#2a0806" : "#160f2e"]} />
+      <fog attach="fog" args={[withered ? "#3a0a04" : "#160f2e", 18, 55]} />
+      <hemisphereLight args={[withered ? "#8a2a1a" : "#b8acff", withered ? "#1a0604" : "#2a3a24", withered ? 0.7 : 1.1]} />
       <directionalLight
         position={[-8, 10, -6]}
         intensity={withered ? 0.8 : 1.4}
-        color={withered ? "#c98a6a" : "#cfd6ff"}
+        color={withered ? "#ff6a3a" : "#ffe9c0"}
         castShadow
         shadow-mapSize={[1024, 1024]}
         shadow-camera-left={-9}
@@ -490,6 +491,7 @@ export default function GardenScene({ trees, level, upgrades, withered = false }
       <Trees trees={trees} dry={withered} />
       <Clouds />
       {!withered && <Rays strong={upgrades >= 5} />}
+      {withered ? <HellDetails depth={depth} /> : <HeavenDetails tier={tier} />}
       <CameraRig fly={fly} />
     </Canvas>
   );

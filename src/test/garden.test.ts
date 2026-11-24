@@ -52,3 +52,18 @@ describe("journal garden", () => {
     expect(g.withered).toBe(true);
   });
 });
+
+import { heavenTier, nextHeavenTier } from "@/lib/garden";
+describe("heaven progression", () => {
+  it("unlocks tiers at 3, 7, 14, 30, 60 prayer-streak days", () => {
+    expect(heavenTier(0)).toBe(0);
+    expect(heavenTier(2)).toBe(0);
+    expect(heavenTier(3)).toBe(1);
+    expect(heavenTier(7)).toBe(2);
+    expect(heavenTier(14)).toBe(3);
+    expect(heavenTier(30)).toBe(4);
+    expect(heavenTier(60)).toBe(5);
+    expect(nextHeavenTier(5)).toEqual({ name: "Fruit gardens", inDays: 2 });
+    expect(nextHeavenTier(60)).toBeNull();
+  });
+});

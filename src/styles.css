@@ -1096,3 +1096,44 @@ body::before {
 @keyframes sc-pop { from { transform: scale(.6); opacity: 0 } }
 @keyframes sc-fall { to { transform: translateY(110vh) rotate(540deg); } }
 @media (prefers-reduced-motion: reduce) { .streak-celebrate > i { display: none } .streak-celebrate-card { animation: none } }
+
+/* Richer look and motion: glowing cards, smoother view changes, shimmering earned badges */
+.panel { position: relative; isolation: isolate; }
+.panel::before {
+  content: ""; position: absolute; inset: -1px; border-radius: inherit; z-index: -1; pointer-events: none;
+  background: conic-gradient(from var(--glow-angle, 0deg), transparent 0 70%, color-mix(in oklch, var(--primary) 55%, transparent) 85%, transparent 100%);
+  opacity: 0; transition: opacity .4s ease;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); padding: 1px;
+  animation: raham-orbit 6s linear infinite;
+}
+.panel:hover::before { opacity: 1; }
+@property --glow-angle { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+@keyframes raham-orbit { to { --glow-angle: 360deg; } }
+.enter-view > * { animation-name: raham-rise-blur; }
+@keyframes raham-rise-blur { from { opacity: 0; transform: translateY(14px) scale(.985); filter: blur(6px); } to { opacity: 1; transform: none; filter: none; } }
+.badge-earned { position: relative; overflow: hidden; box-shadow: 0 0 12px -4px var(--gold, currentColor); animation: raham-badge-pulse 3s ease-in-out infinite; }
+.badge-earned::after { content: ""; position: absolute; inset: 0; background: linear-gradient(110deg, transparent 30%, color-mix(in oklch, currentColor 45%, transparent) 50%, transparent 70%); background-size: 250% 100%; animation: raham-sheen 3.2s linear infinite; }
+@keyframes raham-badge-pulse { 50% { box-shadow: 0 0 18px -2px currentColor; transform: scale(1.04); } }
+@media (prefers-reduced-motion: reduce) {
+  .panel::before, .badge-earned, .badge-earned::after { animation: none; }
+  .enter-view > * { animation-name: raham-rise; }
+}
+
+/* Fill-in daily count and collapsible garden info */
+.count-fill { width: 4.25rem; min-height: 2.25rem; padding: 4px 8px; text-align: center; font-family: var(--font-mono, monospace); flex-shrink: 0; }
+.journal-garden-hud { pointer-events: auto; }
+.journal-garden-hud > summary { cursor: pointer; list-style: none; }
+.journal-garden-hud > summary::-webkit-details-marker { display: none; }
+.journal-garden-hud > summary::after { content: " ▾"; opacity: .7; }
+.journal-garden-hud[open] > summary::after { content: " ▴"; }
+.journal-garden-hud:not([open]) { padding: 6px; background: transparent; border-color: transparent; backdrop-filter: none; }
+
+/* Phone polish for glowing cards and badges */
+@media (max-width: 640px) {
+  .panel:hover { transform: none; }
+  .panel::before { animation-duration: 9s; }
+  .panel:focus-within::before { opacity: 1; }
+  .badge-earned, .flex-wrap > span[title] { font-size: 12px; padding: 8px 12px; min-height: 36px; display: inline-flex; align-items: center; }
+  .badge-earned { animation: none; }
+  .count-fill { width: 4.75rem; min-height: 2.75rem; font-size: 16px; }
+}
