@@ -85,6 +85,19 @@ export function Daily({
     mq.addEventListener("change", pick);
     return () => mq.removeEventListener("change", pick);
   }, []);
+  // On computers the Prayer tracker sits right after the 3D garden.
+  const [desktopPrayer, setDesktopPrayer] = useState<HTMLElement | null>(null);
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 768px)");
+    const pick = () => setDesktopPrayer(mq.matches ? document.getElementById("desktop-prayer") : null);
+    pick();
+    const raf = requestAnimationFrame(pick);
+    mq.addEventListener("change", pick);
+    return () => {
+      cancelAnimationFrame(raf);
+      mq.removeEventListener("change", pick);
+    };
+  }, []);
   const [location, setLocation] = useState("Sample prayer times");
   const [locating, setLocating] = useState(false);
   const [repairChecks, setRepairChecks] = useState<boolean[]>([false, false, false, false]);
@@ -377,133 +390,7 @@ export function Daily({
           </div>
         </Panel>
   );
-  return (
-    <div className="enter-view">
-      <Reminder date={date} />
-      <div className="stat-grid">
-        {[
-          {
-            label: "TODAY’S RAHAM",
-            value: score.toFixed(1),
-            suffix: "/ 10",
-            icon: Target,
-            detail: verdict(score),
-            gold: true,
-          },
-          {
-            label: "PRAYERS OFFERED",
-            value: `${prayerDone}`,
-            suffix: "/ 6",
-            icon: Moon,
-            detail: "Every prayer is a return to Him.",
-          },
-          {
-            label: "TARGETS FINISHED",
-            value: `${tasksDone}`,
-            suffix: `/ ${tasksTotal}`,
-            icon: ListChecks,
-            detail: tasksTotal
-              ? `${Math.max(0, tasksTotal - tasksDone)} still open`
-              : "Set your first target in My plan",
-          },
-          {
-            label: "PRAYER STREAK",
-            value: `${prayerStreak(history, date, sixPrayers).current}`,
-            suffix: "days",
-            icon: Flame,
-            detail: sixPrayers ? "Six prayers, incl. Tahajjud" : "Five obligatory prayers",
-          },
-        ].map((s) => (
-          <section className="panel stat-card" key={s.label}>
-            <div className="flex items-center justify-between">
-              <span className="eyebrow">{s.label}</span>
-              <s.icon size={15} className={s.gold ? "text-gold" : "text-violet-soft"} />
-            </div>
-            <p className={`stat-value ${s.gold ? "text-gold" : ""}`}>
-              {s.value}
-              <span className="text-[11px] text-muted-foreground ml-2 font-sans">{s.suffix}</span>
-            </p>
-            <p className="text-[10px] text-muted-foreground mt-2 leading-relaxed">{s.detail}</p>
-          </section>
-        ))}
-      </div>
-      <Panel
-        title="Today’s targets"
-        icon={<ListChecks />}
-        className="mb-5"
-        action={
-          <span className="pill">
-            {tasksDone} of {tasksTotal} done
-          </span>
-        }
-      >
-        <div className="px-[22px] pb-5 pt-3">
-          {tasksTotal ? (
-            <>
-              <ProgressLine value={(tasksDone / tasksTotal) * 100} />
-              <p className="hold-hint">Hold a target to set its time or fixed daily count.</p>
-              <div className="mt-4 grid gap-2">
-                {day.tasks.map((t) => (
-                  <HoldToSet
-                    className={`plan-row ${t.countTo ? "has-count" : ""} ${taskIsDone(t) ? "is-done" : ""} ${t.missed ? "is-missed" : ""}`}
-                    key={t.id}
-                    label={`${t.name}. Hold or press Enter to set this target`}
-                    onHold={() => setEditingTask(t)}
-                  >
-                    {t.countTo ? (
-                      <input
-                        className="field count-fill"
-                        type="text"
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                        aria-label={`How many ${t.name} completed today`}
-                        placeholder="0"
-                        value={t.count || ""}
-                        onChange={(e) => {
-                          const n = Math.max(0, Math.floor(Number(e.target.value.replace(/\D/g, "")) || 0));
-                          void update({ ...day, tasks: day.tasks.map((x) => (x.id === t.id ? { ...x, count: n, missed: false } : x)) });
-                        }}
-                      />
-                    ) : (
-                      <input
-                        className="prayer-check"
-                        type="checkbox"
-                        aria-label={`Mark ${t.name} done`}
-                        checked={t.done}
-                        onChange={(e) =>
-                          void update({
-                            ...day,
-                            tasks: day.tasks.map((x) =>
-                              x.id === t.id ? { ...x, done: e.target.checked, missed: false } : x,
-                            ),
-                          })
-                        }
-                      />
-                    )}
-                    <span className="plan-row-name">{t.name}</span>
-                    <span className="plan-row-time font-mono text-[10px] text-muted-foreground">
-                      <span className="task-mark" data-mark={taskPoints(t) > 0 ? "positive" : taskPoints(t) < 0 ? "negative" : "open"} title="Target marks">
-                        {taskPoints(t) > 0 ? "+1" : taskPoints(t) < 0 ? "−1" : "0"}
-                      </span>
-                      {t.from}–{t.to}
-                      {t.countTo ? ` · ${Math.min(t.count, t.countTo)}/${t.countTo}` : ""}
-                    </span>
-                    <Button variant="ghost" size="icon" className="size-8 shrink-0" aria-label={`Set ${t.name} target`} onClick={() => setEditingTask(t)}>
-                      <Settings2 size={14} />
-                    </Button>
-                  </HoldToSet>
-                ))}
-              </div>
-            </>
-          ) : (
-            <p className="text-xs text-muted-foreground py-3">
-              No targets yet. Open My plan and write the first thing you intend to finish today.
-            </p>
-          )}
-        </div>
-      </Panel>
-      <div className="dashboard-grid">
-        <div id="mobile-streak" className="md:hidden min-w-0" />
+  const prayerPanel = (
         <Panel
           title="Prayer tracker"
           icon={<Moon />}
@@ -513,7 +400,7 @@ export function Daily({
             {(() => {
               const ps = prayerStreak(history, date, sixPrayers);
               return (
-                <div className="prayer-streak hidden md:flex items-center justify-between gap-3 mb-3 rounded-lg border border-border px-3 py-2">
+                <div className="prayer-streak hidden items-center justify-between gap-3 mb-3 rounded-lg border border-border px-3 py-2">
                   <p className="text-[11px] flex items-center gap-1.5">
                     <Flame size={12} className="text-violet-soft" />
                     <span className="font-display text-[15px]">{ps.current}</span> day prayer streak
@@ -647,6 +534,135 @@ export function Daily({
             </div>
           </div>
         </Panel>
+  );
+  return (
+    <div className="enter-view">
+      <Reminder date={date} />
+      <div className="stat-grid">
+        {[
+          {
+            label: "TODAY’S RAHAM",
+            value: score.toFixed(1),
+            suffix: "/ 10",
+            icon: Target,
+            detail: verdict(score),
+            gold: true,
+          },
+          {
+            label: "PRAYERS OFFERED",
+            value: `${prayerDone}`,
+            suffix: "/ 6",
+            icon: Moon,
+            detail: "Every prayer is a return to Him.",
+          },
+          {
+            label: "TARGETS FINISHED",
+            value: `${tasksDone}`,
+            suffix: `/ ${tasksTotal}`,
+            icon: ListChecks,
+            detail: tasksTotal
+              ? `${Math.max(0, tasksTotal - tasksDone)} still open`
+              : "Set your first target in My plan",
+          },
+          {
+            label: "PRAYER STREAK",
+            value: `${prayerStreak(history, date, sixPrayers).current}`,
+            suffix: "days",
+            icon: Flame,
+            detail: sixPrayers ? "Six prayers, incl. Tahajjud" : "Five obligatory prayers",
+          },
+        ].map((s) => (
+          <section className="panel stat-card" key={s.label}>
+            <div className="flex items-center justify-between">
+              <span className="eyebrow">{s.label}</span>
+              <s.icon size={15} className={s.gold ? "text-gold" : "text-violet-soft"} />
+            </div>
+            <p className={`stat-value ${s.gold ? "text-gold" : ""}`}>
+              {s.value}
+              <span className="text-[11px] text-muted-foreground ml-2 font-sans">{s.suffix}</span>
+            </p>
+            <p className="text-[10px] text-muted-foreground mt-2 leading-relaxed">{s.detail}</p>
+          </section>
+        ))}
+      </div>
+      <Panel
+        title="Today’s targets"
+        icon={<ListChecks />}
+        className="mb-5"
+        action={
+          <span className="pill">
+            {tasksDone} of {tasksTotal} done
+          </span>
+        }
+      >
+        <div className="px-[22px] pb-5 pt-3">
+          {tasksTotal ? (
+            <>
+              <ProgressLine value={(tasksDone / tasksTotal) * 100} />
+              <p className="hold-hint">Hold a target to set its time or fixed daily count.</p>
+              <div className="mt-4 grid gap-2">
+                {day.tasks.map((t) => (
+                  <HoldToSet
+                    className={`plan-row ${t.countTo ? "has-count" : ""} ${taskIsDone(t) ? "is-done" : ""} ${t.missed ? "is-missed" : ""}`}
+                    key={t.id}
+                    label={`${t.name}. Hold or press Enter to set this target`}
+                    onHold={() => setEditingTask(t)}
+                  >
+                    {t.countTo ? (
+                      <input
+                        className="field count-fill"
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        aria-label={`How many ${t.name} completed today`}
+                        placeholder="0"
+                        value={t.count || ""}
+                        onChange={(e) => {
+                          const n = Math.max(0, Math.floor(Number(e.target.value.replace(/\D/g, "")) || 0));
+                          void update({ ...day, tasks: day.tasks.map((x) => (x.id === t.id ? { ...x, count: n, missed: false } : x)) });
+                        }}
+                      />
+                    ) : (
+                      <input
+                        className="prayer-check"
+                        type="checkbox"
+                        aria-label={`Mark ${t.name} done`}
+                        checked={t.done}
+                        onChange={(e) =>
+                          void update({
+                            ...day,
+                            tasks: day.tasks.map((x) =>
+                              x.id === t.id ? { ...x, done: e.target.checked, missed: false } : x,
+                            ),
+                          })
+                        }
+                      />
+                    )}
+                    <span className="plan-row-name">{t.name}</span>
+                    <span className="plan-row-time font-mono text-[10px] text-muted-foreground">
+                      <span className="task-mark" data-mark={taskPoints(t) > 0 ? "positive" : taskPoints(t) < 0 ? "negative" : "open"} title="Target marks">
+                        {taskPoints(t) > 0 ? "+1" : taskPoints(t) < 0 ? "−1" : "0"}
+                      </span>
+                      {t.from}–{t.to}
+                      {t.countTo ? ` · ${Math.min(t.count, t.countTo)}/${t.countTo}` : ""}
+                    </span>
+                    <Button variant="ghost" size="icon" className="size-8 shrink-0" aria-label={`Set ${t.name} target`} onClick={() => setEditingTask(t)}>
+                      <Settings2 size={14} />
+                    </Button>
+                  </HoldToSet>
+                ))}
+              </div>
+            </>
+          ) : (
+            <p className="text-xs text-muted-foreground py-3">
+              No targets yet. Open My plan and write the first thing you intend to finish today.
+            </p>
+          )}
+        </div>
+      </Panel>
+      <div className="dashboard-grid">
+        <div id="mobile-streak" className="md:hidden min-w-0" />
+        {desktopPrayer ? createPortal(prayerPanel, desktopPrayer) : prayerPanel}
         <Panel
           title="Nafs & purity"
           icon={<ShieldCheck />}
