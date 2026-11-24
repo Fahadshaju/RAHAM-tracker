@@ -503,6 +503,7 @@ export function Daily({
         </div>
       </Panel>
       <div className="dashboard-grid">
+        <div id="mobile-streak" className="md:hidden min-w-0" />
         <Panel
           title="Prayer tracker"
           icon={<Moon />}
@@ -512,7 +513,7 @@ export function Daily({
             {(() => {
               const ps = prayerStreak(history, date, sixPrayers);
               return (
-                <div className="prayer-streak flex items-center justify-between gap-3 mb-3 rounded-lg border border-border px-3 py-2">
+                <div className="prayer-streak hidden md:flex items-center justify-between gap-3 mb-3 rounded-lg border border-border px-3 py-2">
                   <p className="text-[11px] flex items-center gap-1.5">
                     <Flame size={12} className="text-violet-soft" />
                     <span className="font-display text-[15px]">{ps.current}</span> day prayer streak
@@ -722,6 +723,7 @@ export function Daily({
             </Button>
           </div>
         </Panel>
+        <div id="mobile-garden" className="md:hidden min-w-0" />
         <div>
           <Panel
             title="The balance"
