@@ -24,9 +24,18 @@ export function JournalGarden({ history, date }: { history: Record<string, Day>;
     const isMobile = window.matchMedia("(max-width: 767px)").matches;
     setMobile(isMobile);
     if (isMobile) return;
-    const w = window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number };
-    if (w.requestIdleCallback) w.requestIdleCallback(() => setMounted(true), { timeout: 2500 });
-    else setTimeout(() => setMounted(true), 1200);
+    // Start the 3D scene on the first real interaction (mouse move, scroll, key, touch),
+    // so the first screen is never blocked by it.
+    const evs = ["pointermove", "pointerdown", "wheel", "scroll", "keydown", "touchstart"] as const;
+    let done = false;
+    const go = () => {
+      if (done) return;
+      done = true;
+      evs.forEach((e) => window.removeEventListener(e, go));
+      setMounted(true);
+    };
+    evs.forEach((e) => window.addEventListener(e, go, { passive: true, once: true }));
+    return () => { done = true; evs.forEach((e) => window.removeEventListener(e, go)); };
   }, []);
   const g = journalGarden(history, date);
   // Same tree positions every time for the same count; new trees get a fresh planting time so they grow.

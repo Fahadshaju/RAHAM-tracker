@@ -1,6 +1,6 @@
 import { type ReactNode } from "react";
 import { Sparkles } from "lucide-react";
-import rahamLogo from "@/assets/raham-logo.png";
+import rahamLogo from "@/assets/raham-logo-sm.webp";
 
 export function RahamLogo() {
   return <img className="brand-mark" src={rahamLogo} alt="" aria-hidden="true" />;
