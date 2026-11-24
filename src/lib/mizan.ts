@@ -9,6 +9,7 @@ export const GUARDRAILS = [
   "No refined sugar",
   "No social scrolling",
   "Physical exercise",
+  "Quran read",
 ];
 export const prayerSchema = z.object({
   name: z.enum(PRAYER_NAMES),
@@ -62,7 +63,11 @@ export function addRepeatingTask(day: Day, task: Task, date: string): Day {
 export const daySchema = z.object({
   tasks: z.array(taskSchema).default([]),
   prayers: z.array(prayerSchema).length(6),
-  guardrails: z.array(z.boolean().nullable()).length(7),
+  // Older saved days have 7 habits; pad them so every day carries one slot per habit.
+  guardrails: z.preprocess(
+    (v) => (Array.isArray(v) && v.length < GUARDRAILS.length ? [...v, ...Array(GUARDRAILS.length - v.length).fill(null)] : v),
+    z.array(z.boolean().nullable()).length(GUARDRAILS.length),
+  ),
   istighfar: z.number().min(0),
   target: z.number().min(1000).max(100000),
   dhikr: z.array(z.number().min(0)).length(4),
@@ -154,8 +159,8 @@ export function makeDay(sample = false): Day {
       loggedAt: sample && i < 3 ? (["04:40", "05:12", "12:35"][i] ?? "") : "",
     })),
     guardrails: sample
-      ? [true, true, true, true, false, true, true]
-      : Array.from({ length: 7 }, () => null),
+      ? [true, true, true, true, false, true, true, true]
+      : Array.from({ length: GUARDRAILS.length }, () => null),
     istighfar: sample ? 750 : 0,
     target: 1000,
     dhikr: sample ? [33, 33, 34, 100] : [0, 0, 0, 0],
@@ -199,7 +204,7 @@ export function prayerPoints(p: Prayer): number {
   return 0;
 }
 export function guardrailPoints(kept: boolean | null) {
-  return kept === true ? 5 : kept === false ? -10 : 0;
+  return kept === true ? 5 : kept === false ? -5 : 0;
 }
 const clamp = (n: number) => Math.max(0, Math.min(1, n));
 /** A day is judged on three things only: prayers kept, commitments kept, targets finished. */
@@ -210,7 +215,7 @@ export function scoreDay(day: Day) {
   const done = day.tasks.filter(taskIsDone).length;
   const pillars = {
     prayers: clamp(day.prayers.reduce((s, p) => s + prayerPoints(p), 0) / 70),
-    purity: clamp(day.guardrails.reduce<number>((s, k) => s + guardrailPoints(k), 0) / 35),
+    purity: clamp(day.guardrails.reduce<number>((s, k) => s + guardrailPoints(k), 0) / (GUARDRAILS.length * 5)),
     targets: total ? clamp(done / total) : 0,
   };
   // With no targets set yet, their share is shared between the two that remain.
@@ -523,9 +528,21 @@ export function badgeProgress(history: Record<string, Day>, today: string, habit
   const next = habitBadge(earned.length);
   return { total, earned, next, badges: [...earned, next] };
 }
-/** Milestones never end: after the named badges, a new one unlocks every 1000 points. */
+/** Each milestone after the first five gets its own name; when the names run out they repeat with a rank (II, III…). */
+export const HABIT_BADGE_NAMES = [
+  "Sabr", "Taqwa", "Ihsan", "Ikhlas", "Tawakkul", "Shukr", "Istiqamah", "Zuhd", "Yaqeen", "Khushu",
+  "Wara", "Haya", "Mujahadah", "Muraqabah", "Rida", "Mahabbah", "Siddiq", "Muhsin", "Muttaqi", "Wali",
+] as const;
+const ROMAN = (n: number) => {
+  const map: [number, string][] = [[1000, "M"], [900, "CM"], [500, "D"], [400, "CD"], [100, "C"], [90, "XC"], [50, "L"], [40, "XL"], [10, "X"], [9, "IX"], [5, "V"], [4, "IV"], [1, "I"]];
+  let out = "";
+  for (const [v, r] of map) while (n >= v) { out += r; n -= v; }
+  return out;
+};
 export function habitBadge(i: number): { points: number; name: string } {
   if (i < HABIT_BADGES.length) return HABIT_BADGES[i]!;
-  const level = i - HABIT_BADGES.length + 2;
-  return { points: 1000 * level, name: `Unshakeable ${level}` };
+  const k = i - HABIT_BADGES.length;
+  const base = HABIT_BADGE_NAMES[k % HABIT_BADGE_NAMES.length]!;
+  const round = Math.floor(k / HABIT_BADGE_NAMES.length);
+  return { points: 1000 * (k + 2), name: round ? `${base} ${ROMAN(round + 1)}` : base };
 }

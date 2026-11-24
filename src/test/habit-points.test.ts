@@ -27,7 +27,14 @@ describe("milestone badges", () => {
     const last = new Date(start.getTime() + 249 * 864e5).toISOString().slice(0, 10);
     const b = badgeProgress(h, last, 1);
     expect(b.total).toBe(2500);
-    expect(b.earned.at(-1)).toEqual({ points: 2000, name: "Unshakeable 2" });
-    expect(b.next).toEqual({ points: 3000, name: "Unshakeable 3" });
+    expect(b.earned.at(-1)).toEqual({ points: 2000, name: "Sabr" });
+    expect(b.next).toEqual({ points: 3000, name: "Taqwa" });
+  });
+});
+
+import { habitBadge } from "@/lib/mizan";
+describe("named milestones forever", () => {
+  it("names milestone 25 by repeating the list with a rank", () => {
+    expect(habitBadge(25)).toEqual({ points: 22000, name: "Sabr II" });
   });
 });

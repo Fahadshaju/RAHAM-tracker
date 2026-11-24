@@ -667,9 +667,10 @@ export function Daily({
         <Panel
           title="Nafs & purity"
           icon={<ShieldCheck />}
-          action={<span className="pill muted-pill">{kept}/7 kept</span>}
+          action={<span className="pill muted-pill">{kept}/{GUARDRAILS.length} kept</span>}
         >
           <div className="px-[22px] pt-3 pb-5">
+            <div className="guardrail-grid">
             {GUARDRAILS.map((name, i) => {
               const s = streak(history, i, date);
               return (
@@ -685,10 +686,15 @@ export function Daily({
                       )}
                     </p>
                   </div>
-                  <Switch
+                  <button
+                    type="button"
+                    role="checkbox"
                     aria-label={name}
-                    checked={day.guardrails[i] === true}
-                    onCheckedChange={(kept) => {
+                    aria-checked={day.guardrails[i] === true}
+                    className="habit-tick"
+                    data-state={day.guardrails[i] === true ? "done" : day.guardrails[i] === false ? "missed" : "open"}
+                    onClick={() => {
+                      const kept = day.guardrails[i] !== true;
                       void update({
                         ...day,
                         guardrails: day.guardrails.map((x, j) => (j === i ? kept : x)),
@@ -698,10 +704,13 @@ export function Daily({
                         setExerciseOpen(true);
                       }
                     }}
-                  />
+                  >
+                    {day.guardrails[i] === true ? <Check size={18} strokeWidth={3} /> : day.guardrails[i] === false ? <X size={16} strokeWidth={2.5} /> : null}
+                  </button>
                 </div>
               );
             })}
+            </div>
             {(() => {
               const b = badgeProgress(history, date, GUARDRAILS.length);
               return (

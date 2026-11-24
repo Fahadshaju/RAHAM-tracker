@@ -1217,3 +1217,30 @@ body::before {
 /* Desktop shows the streak over the garden; phones show it in its own card (server-rendered). */
 .streak-desktop { display: contents; }
 @media (max-width: 767px) { .streak-desktop { display: none; } }
+
+/* Nafs & purity: compact two-column tiles on wider screens */
+@media (min-width: 768px) {
+  .guardrail-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .guardrail-grid .guardrail-row {
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: color-mix(in oklab, var(--foreground) 3%, transparent);
+  }
+  .guardrail-grid .guardrail-row:last-child { border: 1px solid var(--border); }
+}
+@media (min-width: 1280px) {
+  .guardrail-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+/* Nafs habit tick button */
+.habit-tick {
+  flex-shrink: 0; width: 34px; height: 34px; border-radius: 10px;
+  display: grid; place-items: center; cursor: pointer;
+  border: 1.5px solid var(--border); background: transparent; color: var(--foreground);
+  transition: background .2s, border-color .2s, transform .15s;
+}
+.habit-tick:active { transform: scale(.92); }
+.habit-tick:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.habit-tick[data-state="done"] { background: var(--primary); border-color: var(--primary); color: var(--primary-foreground); }
+.habit-tick[data-state="missed"] { border-color: color-mix(in oklab, var(--destructive) 60%, transparent); color: var(--destructive); }

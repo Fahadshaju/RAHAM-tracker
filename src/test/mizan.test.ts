@@ -37,7 +37,7 @@ describe("Prayer points", () => {
 });
 describe("Discipline points", () => {
   it("awards 5 for a kept guardrail", () => expect(guardrailPoints(true)).toBe(5));
-  it("subtracts 10 for a broken guardrail", () => expect(guardrailPoints(false)).toBe(-10));
+  it("subtracts 5 for a missed habit", () => expect(guardrailPoints(false)).toBe(-5));
   it("awards no points to an unlogged commitment", () => expect(guardrailPoints(null)).toBe(0));
   it("resets a streak on relapse and preserves the best", () => {
     const day = makeDay();
@@ -177,5 +177,13 @@ describe("Prayer streak", () => {
     missed.prayers[2] = { ...missed.prayers[2]!, status: "Missed" };
     const h = { "2026-11-21": prayed(false), "2026-11-22": missed, "2026-11-23": prayed(false) };
     expect(prayerStreak(h, "2026-11-23", false)).toEqual({ current: 1, longest: 1 });
+  });
+});
+
+describe("Quran read habit", () => {
+  it("pads days saved with 7 habits to include Quran read as unlogged", async () => {
+    
+    const old = { ...makeDay(false), guardrails: [true, true, true, true, true, true, true] };
+    expect(daySchema.parse(old).guardrails).toEqual([true, true, true, true, true, true, true, null]);
   });
 });
