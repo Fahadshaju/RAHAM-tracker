@@ -1,5 +1,6 @@
 // Main-page garden: grows from the journal's prayers and targets; withers on a negative day.
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Sprout, Skull } from "lucide-react";
 import { HEAVEN_TIER_NAMES, HELL_TIER_NAMES, heavenTier, hellDepth, nextHeavenTier, HALF, forestLevel, freeSpot, journalGarden, unlocked, type GardenTree } from "@/lib/garden";
 import { prayerStreak, type Day } from "@/lib/mizan";
@@ -75,14 +76,12 @@ export function JournalGarden({ history, date }: { history: Record<string, Day>;
     localStorage.setItem(key, v);
     window.dispatchEvent(new Event("raham-settings"));
   };
-  return (
-    <section className={`panel journal-garden mb-5${mobile && !mounted ? " is-min" : ""}`}>
-      {mobile && (
-        <button type="button" className="garden-toggle pill" onClick={() => setMounted((v) => !v)} aria-expanded={mounted}>
-          {mounted ? "Minimize garden ▴" : "Open 3D garden ▾"}
-        </button>
-      )}
-      <div className="journal-garden-canvas">{mounted && <Suspense fallback={null}><GardenScene trees={trees} level={level} upgrades={unlocked(g.streak)} withered={g.withered} tier={tier} depth={Math.max(1, depth)} /></Suspense>}</div>
+  // On phones the streak number sits above the Prayer tracker, apart from the garden.
+  const [streakSlot, setStreakSlot] = useState<HTMLElement | null>(null);
+  useEffect(() => {
+    setStreakSlot(mobile ? document.getElementById("mobile-streak") : null);
+  }, [mobile]);
+  const streakHero = (
       <div className="streak-hero">
         <span className="streak-hero-label">Prayer streak</span>
         <span className="streak-hero-number" key={ps.current}>{ps.current}</span>
@@ -106,6 +105,16 @@ export function JournalGarden({ history, date }: { history: Record<string, Day>;
           {ps.current >= goal && <span className="pill" style={{ color: "var(--gold)" }}>Milestone reached — set the next one</span>}
         </div>
       </div>
+  );
+  return (
+    <section className={`panel journal-garden mb-5${mobile && !mounted ? " is-min" : ""}`}>
+      {mobile && (
+        <button type="button" className="garden-toggle pill" onClick={() => setMounted((v) => !v)} aria-expanded={mounted}>
+          {mounted ? "Minimize Heaven & Hell ▴" : "Open Heaven & Hell 3D ▾"}
+        </button>
+      )}
+      <div className="journal-garden-canvas">{mounted && <Suspense fallback={null}><GardenScene trees={trees} level={level} upgrades={unlocked(g.streak)} withered={g.withered} tier={tier} depth={Math.max(1, depth)} /></Suspense>}</div>
+      {streakSlot ? createPortal(<section className="panel journal-garden mobile-streak-card mb-5">{streakHero}</section>, streakSlot) : streakHero}
       {celebrate && (
         <div className="streak-celebrate" role="status" onClick={() => setCelebrate(false)}>
           {Array.from({ length: 28 }, (_, i) => (
