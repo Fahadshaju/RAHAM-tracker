@@ -56,7 +56,10 @@ export function Daily({
   const [proofOpen, setProofOpen] = useState(false);
   const [sixPrayers, setSixPrayers] = useState(false);
   useEffect(() => {
-    setSixPrayers(localStorage.getItem("raham-six-prayers") === "1");
+    const read = () => setSixPrayers(localStorage.getItem("raham-six-prayers") === "1");
+    read();
+    window.addEventListener("raham-settings", read);
+    return () => window.removeEventListener("raham-settings", read);
   }, []);
   const [tawbah, setTawbah] = useState(false);
   const [prepOpen, setPrepOpen] = useState(false);
@@ -393,6 +396,7 @@ export function Daily({
                       onCheckedChange={(v) => {
                         setSixPrayers(v);
                         localStorage.setItem("raham-six-prayers", v ? "1" : "0");
+                        window.dispatchEvent(new Event("raham-settings"));
                       }}
                     />
                   </label>
