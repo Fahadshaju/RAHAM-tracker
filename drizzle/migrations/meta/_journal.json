@@ -29,6 +29,13 @@
       "when": 1795527718233,
       "tag": "0003_create_profiles",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1795528152616,
+      "tag": "0004_restrict_sample_journal",
+      "breakpoints": true
     }
   ]
 }
