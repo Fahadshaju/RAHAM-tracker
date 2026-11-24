@@ -92,7 +92,7 @@ export function AuthDialog({
         toast.success("Your private RAHAM is ready.");
       }
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Sign-in failed.");
+      toast.error(friendlyAuthError(e instanceof Error ? e.message : "Sign-in failed."));
     } finally {
       setBusy(false);
     }
@@ -208,7 +208,10 @@ function PhoneSignIn({ onDone }: { onDone: () => void }) {
     setBusy(true);
     const { error } = await supabase.auth.signInWithOtp({ phone: clean });
     setBusy(false);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      toast.error(friendlyAuthError(error.message));
+      return;
+    }
     setSent(true);
     toast.success("Code sent by SMS.");
   }
@@ -217,7 +220,7 @@ function PhoneSignIn({ onDone }: { onDone: () => void }) {
     setBusy(true);
     const { error } = await supabase.auth.verifyOtp({ phone: clean, token: code.trim(), type: "sms" });
     setBusy(false);
-    if (error) { toast.error(error.message); return; }
+    if (error) { toast.error(friendlyAuthError(error.message)); return; }
     toast.success("Your private RAHAM is ready.");
     onDone();
   }
@@ -242,4 +245,14 @@ function PhoneSignIn({ onDone }: { onDone: () => void }) {
       <Button type="submit" variant="glow" disabled={busy}>{busy ? "Sending…" : "Send code"}</Button>
     </form>
   );
+}
+
+function friendlyAuthError(msg: string) {
+  if (/unsupported phone provider|phone.*(disabled|not enabled)/i.test(msg)) return "Phone sign-in is not switched on yet. Please use email for now.";
+  if (/invalid login credentials/i.test(msg)) return "Email or password is wrong. Please try again.";
+  if (/email not confirmed/i.test(msg)) return "Please confirm your email first — check your inbox for the link.";
+  if (/token has expired|invalid.*(otp|token)/i.test(msg)) return "That code is wrong or expired. Ask for a new code.";
+  if (/rate limit|too many/i.test(msg)) return "Too many tries. Please wait a minute and try again.";
+  if (/already registered/i.test(msg)) return "This email already has an account. Please sign in instead.";
+  return msg;
 }
