@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { useMizanAuth } from "@/components/mizan/auth";
-import { addRepeatingTask, dateKey, daySchema, makeDay, repeatDates, type RepeatPlan, type Day } from "@/lib/mizan";
+import { addRepeatingTask, carryPrayerTimes, dateKey, daySchema, makeDay, repeatDates, type RepeatPlan, type Day } from "@/lib/mizan";
 import { saveDay, saveRepeatingPlan } from "@/lib/mizan.functions";
 import { toast } from "sonner";
 
@@ -44,9 +44,9 @@ export function useMizanJournal(sample: Day) {
     if (workspace.current !== key) {
       workspace.current = key;
       setSaveError(false);
-      setDay(user ? (historyQuery.data?.[date] ?? makeDay()) : (demoHistory[date] ?? sample));
+      setDay(user ? carryPrayerTimes(historyQuery.data?.[date] ?? makeDay(), historyQuery.data ?? {}, date) : (demoHistory[date] ?? sample));
     } else if (user && !pending.current && historyQuery.data) {
-      setDay(historyQuery.data[date] ?? makeDay());
+      setDay(carryPrayerTimes(historyQuery.data[date] ?? makeDay(), historyQuery.data, date));
     }
   }, [user?.id, date, historyQuery.data, sample]);
   // Serialize snapshots: an older, slower save must never overwrite a newer edit.

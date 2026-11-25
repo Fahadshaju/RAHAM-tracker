@@ -1244,3 +1244,5 @@ body::before {
 .habit-tick:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 .habit-tick[data-state="done"] { background: var(--primary); border-color: var(--primary); color: var(--primary-foreground); }
 .habit-tick[data-state="missed"] { border-color: color-mix(in oklab, var(--destructive) 60%, transparent); color: var(--destructive); }
+.team-mobile .sidebar-label { display: none; }
+.team-mobile button { width: 2rem; height: 2rem; padding: 0; justify-content: center; }

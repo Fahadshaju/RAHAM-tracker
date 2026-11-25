@@ -127,6 +127,14 @@ export function taskPoints(task: Task) {
 export function dateKey(date = new Date()) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
+/** Keep the user's own prayer times: a day with nothing logged yet takes the times of the latest earlier day. */
+export function carryPrayerTimes(day: Day, history: Record<string, Day>, date: string): Day {
+  if (day.prayers.some((p) => p.status !== "Pending")) return day;
+  const prev = Object.keys(history).filter((d) => d < date).sort().pop();
+  const source = prev ? history[prev] : undefined;
+  if (!source) return day;
+  return { ...day, prayers: day.prayers.map((p, i) => ({ ...p, time: source.prayers[i]?.time ?? p.time })) };
+}
 export function makeDay(sample = false): Day {
   return {
     tasks: sample
@@ -225,6 +233,10 @@ export function prayerPoints(p: Prayer): number {
 export function guardrailPoints(kept: boolean | null) {
   return kept === true ? 5 : kept === false ? -5 : 0;
 }
+/** Daily Nafs habits and must-follow rules share one signed commitment total. */
+export function commitmentPoints(day: Day) {
+  return day.guardrails.reduce<number>((sum, kept) => sum + guardrailPoints(kept), 0) + mustPoints(day.musts);
+}
 const clamp = (n: number) => Math.max(0, Math.min(1, n));
 /** A day is judged on three things only: prayers kept, commitments kept, targets finished. */
 export const PILLAR_WEIGHTS = { prayers: 0.5, purity: 0.35, targets: 0.15 } as const;
@@ -234,7 +246,7 @@ export function scoreDay(day: Day) {
   const done = day.tasks.filter(taskIsDone).length;
   const pillars = {
     prayers: clamp(day.prayers.reduce((s, p) => s + prayerPoints(p), 0) / 70),
-    purity: clamp((day.guardrails.reduce<number>((s, k) => s + guardrailPoints(k), 0) + mustPoints(day.musts)) / ((GUARDRAILS.length + day.musts.length) * 5)),
+    purity: clamp(commitmentPoints(day) / ((GUARDRAILS.length + day.musts.length) * 5)),
     targets: total ? clamp(done / total) : 0,
   };
   // With no targets set yet, their share is shared between the two that remain.
@@ -260,8 +272,8 @@ export function scoreDay(day: Day) {
     tasksTotal: total,
     points:
       day.prayers.reduce((s, p) => s + prayerPoints(p), 0) +
-      day.guardrails.reduce<number>((s, k) => s + guardrailPoints(k), 0) +
-      mustPoints(day.musts),
+      commitmentPoints(day),
+    commitmentPoints: commitmentPoints(day),
   };
 }
 export function verdict(score: number) {

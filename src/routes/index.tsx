@@ -1,3 +1,4 @@
+import { TeamButton } from "@/components/mizan/team-button";
 import { DonateBox } from "@/components/mizan/donate-box";
 import { createPortal } from "react-dom";
 import { lazyWithReload } from "@/lib/lazy-reload";
@@ -162,6 +163,7 @@ function Index() {
             </p>
             <p className="text-[8px] text-muted-foreground mt-2">SAHIH AL-BUKHARI · 6464</p>
           </div>
+          <TeamButton />
           <Button variant="nav" aria-label={user ? "My account" : "Sign in to RAHAM"} title={user ? "My account" : "Sign in to RAHAM"} onClick={() => setAuthOpen(true)}>
             <UserRound size={16} />
             <span className="truncate sidebar-label">{user ? "My account" : "Sign in to RAHAM"}</span>
@@ -218,6 +220,7 @@ function Index() {
               <Download size={15} />
             </Button>
             <DonateBox />
+            <div className="md:hidden team-mobile"><TeamButton /></div>
             <Button
               variant="outline"
               className="size-8 rounded-full p-0"
