@@ -210,6 +210,7 @@ function Trees({ trees, dry }: { trees: GardenTree[]; dry: boolean }) {
   const fruit = useRef<THREE.InstancedMesh>(null);
   const greens = useMemo(() => (dry ? ["#6e5232", "#7a6038", "#5b4a30", "#836a3e"] : ["#3f7a3a", "#4d8f45", "#2f6a3a", "#5e9a4a"]).map((c) => new THREE.Color(c)), [dry]);
   useEffect(() => {
+    [trunk.current, crown.current, fruit.current].forEach((mesh) => { if (mesh) mesh.count = trees.length; });
     trees.forEach((t, i) => crown.current?.setColorAt(i, greens[t.seed % greens.length]!));
     if (crown.current?.instanceColor) crown.current.instanceColor.needsUpdate = true;
   }, [trees, greens]);
@@ -217,7 +218,7 @@ function Trees({ trees, dry }: { trees: GardenTree[]; dry: boolean }) {
     const now = Date.now();
     const [a, b, c] = [trunk.current, crown.current, fruit.current];
     if (!a || !b || !c) return;
-    for (let i = 0; i < MAX_TREES; i++) {
+    for (let i = 0; i < trees.length; i++) {
       const t = trees[i];
       const { scale, mature } = t ? growth(t.plantedAt, now) : { scale: 0, mature: 0 };
       const s = t ? scale * (0.85 + (t.seed % 30) / 100) * (dry ? 0.8 : 1) : 0;
@@ -329,7 +330,7 @@ function Birds({ count }: { count: number }) {
 }
 
 /** Drifting clouds: soft white spheres grouped together. */
-function Clouds() {
+function Clouds({ mobile }: { mobile: boolean }) {
   const g = useRef<THREE.Group>(null);
   useFrame((_, d) => {
     g.current?.children.forEach((c, i) => {
@@ -339,7 +340,7 @@ function Clouds() {
   });
   return (
     <group ref={g}>
-      {[[-9, 7, -9], [2, 8, -11], [10, 6.5, -7], [-11, 8, 1]].map((p, i) => (
+      {[[-9, 7, -9], [2, 8, -11], [10, 6.5, -7], [-11, 8, 1]].slice(0, mobile ? 2 : 4).map((p, i) => (
         <group key={i} position={p as [number, number, number]}>
           {[0, 0.8, -0.7, 0.3].map((o, j) => (
             <mesh key={j} position={[o, j === 1 ? 0.3 : 0, j * 0.2]}>
@@ -419,13 +420,25 @@ function Night({ dry, river }: { dry: boolean; river: boolean }) {
 }
 
 /** Camera: orbit + zoom from OrbitControls; double-click glides the target to a spot. */
-function CameraRig({ fly }: { fly: React.MutableRefObject<THREE.Vector3 | null> }) {
+function CameraRig({ fly, tier, mobile }: { fly: React.MutableRefObject<THREE.Vector3 | null>; tier: number; mobile: boolean }) {
   const controls = useRef<OrbitImpl>(null);
-  const { gl } = useThree();
+  const { gl, camera } = useThree();
   useEffect(() => {
-    gl.domElement.parentElement?.setAttribute("data-scene-ready", "true");
-  }, [gl]);
+    const c = controls.current;
+    if (!c) return;
+    const elevated = tier >= 9;
+    camera.position.set(elevated ? 17 : mobile ? 14 : 11, elevated ? 13 : mobile ? 11 : 8.5, elevated ? 17 : mobile ? 14 : 11);
+    c.target.set(0, elevated ? 3 : 0.8, 0);
+    c.update();
+  }, [camera, tier, mobile]);
   useFrame((_, d) => {
+    const parent = gl.domElement.parentElement;
+    parent?.setAttribute("data-scene-ready", "true");
+    if (import.meta.env.DEV) {
+      parent?.setAttribute("data-render-calls", String(gl.info.render.calls));
+      parent?.setAttribute("data-render-triangles", String(gl.info.render.triangles));
+      parent?.setAttribute("data-garden-tier", String(tier));
+    }
     const c = controls.current;
     const target = fly.current;
     if (!c || !target) return;
@@ -453,12 +466,25 @@ function CameraRig({ fly }: { fly: React.MutableRefObject<THREE.Vector3 | null> 
 export default function GardenScene({ trees, level, upgrades, withered = false, tier = 0, depth = 1 }: Props) {
   const fly = useRef<THREE.Vector3 | null>(null);
   const mobile = typeof window !== "undefined" && window.matchMedia("(max-width: 768px), (pointer: coarse)").matches;
+  const palette = useMemo(() => {
+    const css = getComputedStyle(document.documentElement);
+    const context = document.createElement("canvas").getContext("2d", { willReadFrequently: true });
+    const read = (token: string) => {
+      if (!context) return new THREE.Color();
+      context.clearRect(0, 0, 1, 1);
+      context.fillStyle = css.getPropertyValue(token).trim();
+      context.fillRect(0, 0, 1, 1);
+      const pixel = context.getImageData(0, 0, 1, 1).data;
+      return new THREE.Color().setRGB((pixel[0] ?? 0) / 255, (pixel[1] ?? 0) / 255, (pixel[2] ?? 0) / 255, THREE.SRGBColorSpace);
+    };
+    return { gold: read("--gold"), pearl: read("--foreground") };
+  }, []);
   return (
     <Canvas
       shadows={!mobile}
       dpr={mobile ? [1, 1.25] : [1, 1.75]}
       performance={{ min: 0.5 }}
-      camera={{ position: [11, 8.5, 11], fov: 40 }}
+      camera={{ position: [11, 8.5, 11], fov: mobile ? 48 : 42 }}
       gl={{ antialias: !mobile, powerPreference: "high-performance" }}
       onCreated={({ gl }) => (gl.toneMapping = THREE.ACESFilmicToneMapping)}
     >
@@ -490,11 +516,11 @@ export default function GardenScene({ trees, level, upgrades, withered = false, 
       {upgrades >= 4 && <Pavilion />}
       {level >= 2 && <Path />}
       {level >= 2 && !withered && <Birds count={level >= 3 ? 14 : 6} />}
-      <Trees trees={trees} dry={withered} />
-      <Clouds />
+      <Trees trees={mobile ? trees.slice(0, 120) : trees} dry={withered} />
+      <Clouds mobile={mobile} />
       {!withered && <Rays strong={upgrades >= 5} />}
-      {withered ? <HellDetails depth={depth} /> : <HeavenDetails tier={tier} />}
-      <CameraRig fly={fly} />
+      {withered ? <HellDetails depth={depth} /> : <HeavenDetails tier={tier} mobile={mobile} gold={palette.gold} pearl={palette.pearl} />}
+      <CameraRig fly={fly} tier={tier} mobile={mobile} />
     </Canvas>
   );
 }

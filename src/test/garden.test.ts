@@ -53,7 +53,7 @@ describe("journal garden", () => {
   });
 });
 
-import { heavenTier, nextHeavenTier } from "@/lib/garden";
+import { heavenTier, nextHeavenTier, heavenTierName } from "@/lib/garden";
 describe("heaven progression", () => {
   it("unlocks tiers at 3, 7, 14, 30, 60 prayer-streak days", () => {
     expect(heavenTier(0)).toBe(0);
@@ -64,6 +64,17 @@ describe("heaven progression", () => {
     expect(heavenTier(30)).toBe(4);
     expect(heavenTier(60)).toBe(5);
     expect(nextHeavenTier(5)).toEqual({ name: "Fruit gardens", inDays: 2 });
-    expect(nextHeavenTier(60)).toBeNull();
+    expect(heavenTier(90)).toBe(6);
+    expect(heavenTier(365)).toBe(8);
+    expect(heavenTier(3650)).toBe(12);
+    expect(heavenTier(3650 + 365)).toBe(13);
+    expect(heavenTierName(13)).toBe("Eternal horizon 2");
+    expect(nextHeavenTier(60)).toEqual({ name: "Angels of light", inDays: 30 });
+    expect(nextHeavenTier(3650)).toEqual({ name: "Eternal horizon 2", inDays: 365 });
+  });
+  it("reaches the fully detailed stage at ten years, not twenty", () => {
+    expect(heavenTierName(heavenTier(3650 - 1))).toBe("Celestial realm");
+    expect(heavenTierName(heavenTier(10 * 365))).toBe("Eternal horizon");
+    expect(heavenTier(100 * 365)).toBe(102);
   });
 });

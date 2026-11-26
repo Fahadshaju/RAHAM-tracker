@@ -52,3 +52,5 @@ use the editor.
 - On phones: garden starts minimized, prayer tracker first in Today, Deep work portals into the Progress tab (#mobile-deepwork); desktop unchanged except idle-deferred 3D.
 - Donations use Razorpay through the connector gateway in server functions (src/lib/donate.functions.ts); success is confirmed by reading the order from Razorpay, never trusted from the browser.
 - Journal date is chosen by the user and persisted (localStorage raham-date); it never auto-rolls at midnight. Prayer streak stays; weekly Istighfar total shows on the Istighfar card. Prayer times carry from the latest earlier day the user actually set up; the time input edits the scheduled time (legacy loggedAt values count as chosen times).
+- Heaven stages reach the full scene at ten prayer-streak years and continue yearly thereafter; no visible preview timeline. Bound repeated decoration and phone detail counts so lifetime progression cannot grow rendering cost indefinitely.
+- Garden verification uses the dev-only gardenStage URL parameter and canvas data-render-calls/triangles attributes; production ignores stage overrides so saved progress remains authoritative.

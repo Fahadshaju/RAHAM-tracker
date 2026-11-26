@@ -114,17 +114,29 @@ export function journalGarden(history: Record<string, Day>, today: string) {
   };
 }
 
-/** Prayer-streak days needed to unlock each Heaven tier (tier = index). */
-export const HEAVEN_TIERS = [0, 3, 7, 14, 30, 60] as const;
-export const HEAVEN_TIER_NAMES = ["Seedling oasis", "Lantern grove", "Fruit gardens", "Domed sanctuary", "Rivers of light", "Highest Firdaus"] as const;
+/** Prayer-streak days needed to unlock each Heaven tier (tier = index). After the last, one more tier every 365 days, forever. */
+export const HEAVEN_TIERS = [0, 3, 7, 14, 30, 60, 90, 180, 365, 730, 1825, 2555, 3650] as const;
+export const HEAVEN_TIER_NAMES = [
+  "Seedling oasis", "Lantern grove", "Fruit gardens", "Domed sanctuary", "Rivers of light", "Highest Firdaus",
+  "Angels of light", "Pearl arches", "Palace of light", "Floating terraces", "Tree of Sidrah", "Celestial realm", "Eternal horizon",
+] as const;
+const LAST = HEAVEN_TIERS.length - 1;
+const LAST_DAYS: number = HEAVEN_TIERS[LAST] ?? 3650;
 export function heavenTier(prayerStreak: number) {
+  if (prayerStreak >= LAST_DAYS) return LAST + Math.floor((prayerStreak - LAST_DAYS) / 365);
   let t = 0;
   HEAVEN_TIERS.forEach((need, i) => { if (prayerStreak >= need) t = i; });
   return t;
 }
+export function heavenTierName(t: number) {
+  return t <= LAST ? HEAVEN_TIER_NAMES[t] ?? HEAVEN_TIER_NAMES[0] : `Eternal horizon ${t - LAST + 1}`;
+}
+export function heavenTierDays(t: number) {
+  return t <= LAST ? HEAVEN_TIERS[t] ?? 0 : LAST_DAYS + (t - LAST) * 365;
+}
 export function nextHeavenTier(prayerStreak: number) {
-  const t = heavenTier(prayerStreak);
-  return t + 1 < HEAVEN_TIERS.length ? { name: HEAVEN_TIER_NAMES[t + 1]!, inDays: HEAVEN_TIERS[t + 1]! - prayerStreak } : null;
+  const t = heavenTier(prayerStreak) + 1;
+  return { name: heavenTierName(t), inDays: heavenTierDays(t) - prayerStreak };
 }
 export const HELL_TIER_NAMES = ["", "Smouldering ground", "Fire pits", "Burning wasteland", "Abyss of flame"] as const;
 /** Consecutive negative-point days ending today (capped at 4); 0 when today is not negative. */

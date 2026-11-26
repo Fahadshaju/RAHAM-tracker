@@ -947,7 +947,9 @@ body::before {
 .garden-nav-link { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; font-size: 13px; color: var(--gold); border: 1px solid oklch(0.78 0.125 86 / 0.3); }
 .garden-nav-link:hover { background: oklch(0.78 0.125 86 / 0.1); }
 .journal-garden { position: relative; overflow: hidden; }
-.journal-garden-canvas { height: clamp(320px, 52vh, 520px); touch-action: none; animation: garden-fade 1.2s ease both; }
+.garden-stage { position: relative; }
+.garden-preview-loading { height: 100%; display: grid; place-items: center; color: var(--muted-foreground); }
+.journal-garden-canvas { height: clamp(400px, 60vh, 600px); touch-action: none; animation: garden-fade 1.2s ease both; }
 .journal-garden-hud { position: absolute; left: 14px; bottom: 14px; display: grid; gap: 6px; padding: 10px 12px; border-radius: 12px; background: oklch(0.12 0.03 300 / 0.6); backdrop-filter: blur(12px); border: 1px solid oklch(0.78 0.125 86 / 0.25); pointer-events: none; }
 
 /* Shared readable scale for the compact labels used by existing workspace views. */
@@ -1079,7 +1081,7 @@ body::before {
 .streak-goal-chip.is-on { border-color: var(--gold); color: var(--gold); }
 @keyframes streak-pop { from { transform: scale(.85) translateY(10px); } to { transform: none; } }
 @media (min-width: 900px) {
-  .journal-garden-canvas { margin-left: 38%; height: clamp(460px, 62vh, 640px); }
+  .journal-garden-canvas { margin-left: 32%; height: clamp(520px, 70vh, 720px); }
   .journal-garden-hud { left: auto; right: 16px; }
 }
 @media (max-width: 899px) {
