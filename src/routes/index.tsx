@@ -35,7 +35,7 @@ const JournalGarden = lazyWithReload(() => import("@/components/garden/journal-g
 const Analytics = lazyWithReload(() => import("@/components/mizan/analytics").then((m) => ({ default: m.Analytics })));
 const Quran = lazyWithReload(() => import("@/components/mizan/quran").then((m) => ({ default: m.Quran })));
 const Fallback = () => <div className="py-16 flex justify-center text-muted-foreground"><LoaderCircle className="animate-spin" /></div>;
-import { downloadFile } from "@/lib/mizan";
+import { downloadFile, weeklyIstighfar } from "@/lib/mizan";
 
 const sampleOptions = queryOptions({
   queryKey: ["mizan-sample"],
@@ -325,7 +325,7 @@ function Index() {
                   return mobileGarden ? createPortal(garden, mobileGarden) : garden;
                 })()}
                 <div id="desktop-prayer" className="hidden md:block" />
-                <IstighfarCard day={journal.day} date={date} update={journal.update} repeat={journal.repeat} />
+                <IstighfarCard day={journal.day} date={date} update={journal.update} repeat={journal.repeat} weekTotal={weeklyIstighfar(journal.history, date)} />
                 <Daily
                   journal={journal}
                   onAuth={() => setAuthOpen(true)}

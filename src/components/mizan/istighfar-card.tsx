@@ -11,10 +11,11 @@ type Props = {
   date: string;
   update: (d: Day) => Promise<void> | void;
   repeat: (plan: RepeatPlan) => Promise<number>;
+  weekTotal?: number;
 };
 
 /** Main-page Istighfar: fix a daily target for a range of months, then fill in what you completed. */
-export function IstighfarCard({ day, date, update, repeat }: Props) {
+export function IstighfarCard({ day, date, update, repeat, weekTotal }: Props) {
   const task = day.tasks.find((t) => isIstighfar(t.name) && t.countTo > 0);
   const month = date.slice(0, 7);
   const [target, setTarget] = useState(String(task?.countTo ?? 1000));
@@ -51,7 +52,7 @@ export function IstighfarCard({ day, date, update, repeat }: Props) {
     <section className="istighfar-card rounded-xl border border-border bg-card/60 p-4 mb-6">
       <button type="button" className="w-full flex items-center justify-between gap-2 text-left" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
         <h2 className="text-lg font-semibold">Istighfar</h2>
-        <span className="flex items-center gap-2 text-sm text-muted-foreground">
+        <span className="flex items-center gap-2 text-sm text-muted-foreground">{weekTotal != null && <span className="pill">Week: {weekTotal}</span>}
           {task ? `${done} / ${task.countTo} · ${pct}%` : "No target yet"}
           <ChevronDown size={16} className={`transition-transform ${open ? "rotate-180" : ""}`} />
         </span>

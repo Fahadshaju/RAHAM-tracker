@@ -33,6 +33,7 @@ use the editor.
 - Keep MIZAN's workspace views as tabs on the public index; signed-out users see labelled sample data and private actions require a verified Cloud session.
 - Store each date's journal as validated JSON scoped by user and date, and roadmaps as validated user-owned documents, so journal changes and course progress remain private.
 - Keep scoring, exports, and schemas in the browser-safe domain module; protect concrete point values and pillar weights with unit tests.
+- Use the domain commitmentPoints total for Balance and journal-garden scoring so Nafs habits and must-follow rules are counted once and stay consistent; milestone history remains separate from daily points.
 - Read YouTube metadata and all available transcripts in staged authenticated server functions, then merge every source in a single dependency-ordered synthesis; never invent missing captions or timestamps.
 - Accounts are email/password only (Google and phone removed at user request); sign-up uses a retype-password check with auto-confirm instead of email verification; calendar sharing is .ics export only.
 - Define visual roles, readable text scales, and workspace spacing in global tokens and reusable view styles; numerical progress is the only runtime visual dimension, and shared compact-label mappings keep existing tabs consistent.
@@ -50,3 +51,4 @@ use the editor.
 - On non-Lovable hosts the Quran tab loads files from /quran/<original_filename>; those copies exist only in the GitHub repo (pushed from the asset CDN), not in the Lovable project.
 - On phones: garden starts minimized, prayer tracker first in Today, Deep work portals into the Progress tab (#mobile-deepwork); desktop unchanged except idle-deferred 3D.
 - Donations use Razorpay through the connector gateway in server functions (src/lib/donate.functions.ts); success is confirmed by reading the order from Razorpay, never trusted from the browser.
+- Journal date is chosen by the user and persisted (localStorage raham-date); it never auto-rolls at midnight. Prayer streak stays; weekly Istighfar total shows on the Istighfar card. Prayer times carry from the latest earlier day the user actually set up; the time input edits the scheduled time (legacy loggedAt values count as chosen times).

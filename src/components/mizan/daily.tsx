@@ -29,7 +29,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { prayerPoints, prayerStreak } from "@/lib/mizan";
+import { guardrailPoints, prayerPoints, prayerStreak } from "@/lib/mizan";
 import {
   Dialog,
   DialogContent,
@@ -43,7 +43,7 @@ import { TaskTargetDialog } from "./task-target-dialog";
 import { type useMizanJournal } from "@/hooks/use-mizan-journal";
 import { reflectionEntries } from "@/lib/mizan";
 import { MUSTS_MAX, MUSTS_MIN, PREP_TYPES, mustsFor, mustPoints } from "@/lib/mizan";
-import { GUARDRAILS, HABIT_POINTS_PER_DAY, HABIT_BADGES, badgeProgress, scoreDay, streak, taskIsDone, taskPoints, verdict, formatMinutes, type Task } from "@/lib/mizan";
+import { GUARDRAILS, HABIT_BADGES, badgeProgress, scoreDay, streak, taskIsDone, taskPoints, verdict, formatMinutes, type Task } from "@/lib/mizan";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -59,7 +59,7 @@ export function Daily({
   onAnalytics: () => void;
 }) {
   const { day, date, update, history, user } = journal;
-  const { score, pillars, tasksDone, tasksTotal } = scoreDay(day);
+  const { score, pillars, tasksDone, tasksTotal, commitmentPoints } = scoreDay(day);
   const [proofOpen, setProofOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [prayerMenu, setPrayerMenu] = useState<string | null>(null);
@@ -469,8 +469,8 @@ export function Daily({
                     )}
                   </div>
                   <input
-                    aria-label={`${p.name} logged time`}
-                    title={`Scheduled ${p.time} · actual time logged`}
+                    aria-label={`${p.name} prayer time`}
+                    title={`${p.name} time · carries to every new day`}
                     className="prayer-time bg-transparent w-[110px] border-0 text-[17px]"
                     type="time"
                     value={p.loggedAt || p.time}
@@ -478,7 +478,7 @@ export function Daily({
                       void update({
                         ...day,
                         prayers: day.prayers.map((x) =>
-                          x.name === p.name ? { ...x, loggedAt: e.target.value } : x,
+                          x.name === p.name ? { ...x, time: e.target.value || x.time, loggedAt: "" } : x,
                         ),
                       })
                     }
@@ -681,13 +681,14 @@ export function Daily({
             <div className="guardrail-grid">
             {GUARDRAILS.map((name, i) => {
               const s = streak(history, i, date);
+              const points = guardrailPoints(day.guardrails[i] ?? null);
               return (
                 <div className="guardrail-row" key={name}>
                   <div>
                     <p className="text-[12px]">{name}</p>
                     <p className="text-[9px] text-muted-foreground mt-1 flex items-center gap-1">
                       <Flame size={10} className="text-violet-soft" />
-                      <span className="text-gold font-semibold">{s.current * HABIT_POINTS_PER_DAY} pts</span>
+                      <span className={`${points < 0 ? "text-destructive" : "text-gold"} font-semibold`}>{points > 0 ? "+" : ""}{points} pts today</span>
                       <span className="ml-1">· {s.current} days · best {s.longest}</span>
                       {i === 6 && day.exerciseMinutes > 0 && (
                         <span>· {day.exerciseMinutes} min</span>
@@ -816,7 +817,7 @@ export function Daily({
               ].map((p) => (
                 <div key={p.name}>
                   <div className="flex justify-between text-[10px] mb-1.5">
-                    <span className="text-muted-foreground">{p.name}</span>
+                    <span className="text-muted-foreground">{p.name}{p.name === "Commitments" && <span className={`ml-2 font-mono ${commitmentPoints < 0 ? "text-destructive" : "text-gold"}`}>{commitmentPoints > 0 ? "+" : ""}{commitmentPoints} pts</span>}</span>
                     <span className="text-muted-foreground font-mono">{p.weight}</span>
                   </div>
                   <ProgressLine value={p.value * 100} />

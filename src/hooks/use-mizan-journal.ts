@@ -22,8 +22,14 @@ export function useMizanJournal(sample: Day) {
   const pending = useRef(0);
   const workspace = useRef("");
   useEffect(() => {
-    setDate(dateKey());
+    // The date changes only when the user picks one; it never rolls over at midnight.
+    const saved = localStorage.getItem("raham-date");
+    setDate(saved && /^\d{4}-\d{2}-\d{2}$/.test(saved) ? saved : dateKey());
   }, []);
+  const pickDate = (d: string) => {
+    localStorage.setItem("raham-date", d);
+    setDate(d);
+  };
   const historyQuery = useQuery({
     queryKey: ["private", "journal", user?.id],
     enabled: !!user,
@@ -103,7 +109,7 @@ export function useMizanJournal(sample: Day) {
     const task = queue.current.then(async () => {
       const changes = await saveRepeat({ data: plan });
       queryClient.setQueryData<Record<string, Day>>(["private", "journal", userId], (old) => ({ ...old, ...changes }));
-      if (workspace.current === `${userId}:${date}` && changes[date]) setDay(changes[date]);
+      if (workspace.current === `${userId}:${date}` && changes[date]) setDay(carryPrayerTimes(changes[date], { ...historyQuery.data, ...changes }, date));
       return dates.length;
     });
     queue.current = task.then(() => {}, () => {});
@@ -114,7 +120,7 @@ export function useMizanJournal(sample: Day) {
   return {
     day,
     date,
-    setDate,
+    setDate: pickDate,
     update,
     repeat,
     history,

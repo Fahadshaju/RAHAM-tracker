@@ -128,12 +128,22 @@ export function dateKey(date = new Date()) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
 /** Keep the user's own prayer times: a day with nothing logged yet takes the times of the latest earlier day. */
+// The time a user typed is the day's prayer time; older saves kept it in loggedAt.
+const chosenTimes = (d: Day) => d.prayers.map((p) => p.loggedAt || p.time);
 export function carryPrayerTimes(day: Day, history: Record<string, Day>, date: string): Day {
-  if (day.prayers.some((p) => p.status !== "Pending")) return day;
-  const prev = Object.keys(history).filter((d) => d < date).sort().pop();
+  const defaults = makeDay().prayers.map((p) => p.time).join();
+  const isSetUp = (d: Day) => chosenTimes(d).join() !== defaults;
+  if (isSetUp(day)) return { ...day, prayers: day.prayers.map((p) => ({ ...p, time: p.loggedAt || p.time, loggedAt: "" })) };
+  // Untouched days (default times, e.g. created by a repeating plan) take the latest earlier day the user set up.
+  const prev = Object.keys(history)
+    .filter((d) => d < date)
+    .sort()
+    .reverse()
+    .find((d) => isSetUp(history[d]!));
   const source = prev ? history[prev] : undefined;
   if (!source) return day;
-  return { ...day, prayers: day.prayers.map((p, i) => ({ ...p, time: source.prayers[i]?.time ?? p.time })) };
+  const times = chosenTimes(source);
+  return { ...day, prayers: day.prayers.map((p, i) => ({ ...p, time: times[i] ?? p.time, loggedAt: "" })) };
 }
 export function makeDay(sample = false): Day {
   return {
@@ -587,4 +597,17 @@ export function reflectionEntries(history: Record<string, Day>) {
     else if (d.reflection.some((r) => r.trim())) out.push({ at: `${date}T12:00:00`, date, answers: d.reflection });
   }
   return out.sort((a, b) => b.at.localeCompare(a.at));
+}
+
+/** Istighfar counted across the 7 days ending on `date` (inclusive), from Istighfar targets. */
+export function weeklyIstighfar(history: Record<string, Day>, date: string) {
+  const end = new Date(`${date}T12:00:00`);
+  let total = 0;
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(end);
+    d.setDate(end.getDate() - i);
+    const day = history[dateKey(d)];
+    for (const t of day?.tasks ?? []) if (/istighfar/i.test(t.name)) total += t.count;
+  }
+  return total;
 }

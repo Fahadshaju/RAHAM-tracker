@@ -206,3 +206,12 @@ describe("Honest moment history", () => {
     expect(reflectionEntries({ "2026-11-24": d }).map((e) => e.answers[0])).toEqual(["b", "a"]);
   });
 });
+
+import { weeklyIstighfar } from "@/lib/mizan";
+describe("Weekly Istighfar total", () => {
+  it("sums Istighfar counts over the last 7 days only", () => {
+    const withCount = (c: number) => ({ ...makeDay(), tasks: [{ id: "i", name: "Istighfar", from: "20:00", to: "21:00", done: false, count: c, countTo: 1000 }] });
+    const h = { "2026-11-26": withCount(300), "2026-11-20": withCount(200), "2026-11-19": withCount(999) };
+    expect(weeklyIstighfar(h, "2026-11-26")).toBe(500);
+  });
+});

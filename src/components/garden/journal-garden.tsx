@@ -1,4 +1,4 @@
-// Main-page garden: grows from the journal's prayers and targets; withers on a negative day.
+// Main-page garden: grows from prayers, commitments and targets; withers on a negative day.
 import { lazyWithReload } from "@/lib/lazy-reload";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { Sprout, Skull } from "lucide-react";
@@ -107,7 +107,7 @@ export function JournalGarden({ history, date }: { history: Record<string, Day>;
         <span className="text-[11px]">Trees: <b style={{ color: "var(--gold)" }}>{g.trees}</b> · Level {level} · Today {g.todayPoints >= 0 ? "+" : ""}{g.todayPoints}</span>
         <span className="text-[11px]" style={{ color: g.withered ? "var(--destructive)" : "var(--gold)" }}>{g.withered ? `Hell · depth ${Math.max(1, depth)}/4 — ${HELL_TIER_NAMES[Math.max(1, depth)]}` : `Heaven · tier ${tier}/5 — ${HEAVEN_TIER_NAMES[tier]}`}</span>
         {!g.withered && next && <span className="text-[10px] text-muted-foreground">Next: {next.name} in {next.inDays} {next.inDays === 1 ? "day" : "days"} of prayer</span>}
-        <span className="text-[10px] text-muted-foreground">+1 per prayer · +1 per target (up to 10) · −2 per missed prayer</span>
+        <span className="text-[10px] text-muted-foreground">+1 per prayer · +1 per target (up to 10) · −2 per missed prayer · +5/−5 per kept/missed Nafs habit or rule</span>
       </details>
     </section>
   );

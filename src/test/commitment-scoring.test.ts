@@ -65,3 +65,37 @@ describe("prayer times carry forward", () => {
     expect(carryPrayerTimes(makeDay(), { "2026-11-24": prev }, "2026-11-25").prayers[1]!.time).toBe("05:30");
   });
 });
+describe("prayer times skip untouched days", () => {
+  it("ignores an earlier day that only holds default times", async () => {
+    const { carryPrayerTimes } = await import("@/lib/mizan");
+    const set = makeDay();
+    set.prayers[1]!.time = "05:30";
+    expect(carryPrayerTimes(makeDay(), { "2026-11-23": set, "2026-11-24": makeDay() }, "2026-11-25").prayers[1]!.time).toBe("05:30");
+  });
+});
+describe("prayer times never reset on a new day", () => {
+  it("carries times even when the new day already has prayer statuses marked", async () => {
+    const { carryPrayerTimes } = await import("@/lib/mizan");
+    const set = makeDay();
+    set.prayers[1]!.time = "05:30";
+    const today = makeDay();
+    today.prayers[2]!.status = "On time";
+    expect(carryPrayerTimes(today, { "2026-11-24": set }, "2026-11-25").prayers[1]!.time).toBe("05:30");
+  });
+  it("treats a time saved by the older editor as the chosen time", async () => {
+    const { carryPrayerTimes } = await import("@/lib/mizan");
+    const old = makeDay();
+    old.prayers[1]!.loggedAt = "05:45";
+    expect(carryPrayerTimes(makeDay(), { "2026-11-24": old }, "2026-11-25").prayers[1]!.time).toBe("05:45");
+  });
+  it("keeps a day's own times instead of copying older ones", async () => {
+    const { carryPrayerTimes } = await import("@/lib/mizan");
+    const older = makeDay();
+    older.prayers[1]!.time = "05:30";
+    const own = makeDay();
+    own.prayers[3]!.time = "16:10";
+    const result = carryPrayerTimes(own, { "2026-11-24": older }, "2026-11-25");
+    expect(result.prayers[3]!.time).toBe("16:10");
+    expect(result.prayers[1]!.time).toBe(makeDay().prayers[1]!.time);
+  });
+});

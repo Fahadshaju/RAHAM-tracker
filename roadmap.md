@@ -1,5 +1,8 @@
 # Roadmap
 
+## Current request
+- [x] Include daily Nafs habits and must-follow points in commitments, Balance and Heaven & Hell; 65 tests passed and signed-in +5/−5 changes persisted after refresh; saved for GitHub sync.
+
 ## Done
 - [x] Repeating targets across selected months, stacked daily sections, and an auto-expanding desktop sidebar; private saves and independent daily completion verified after refresh.
 - [x] Enlarge text and open up workspace spacing, with roomier rows and phone-friendly layouts.
