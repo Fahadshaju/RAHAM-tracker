@@ -29,7 +29,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { guardrailPoints, prayerPoints, prayerStreak } from "@/lib/mizan";
+import { guardrailPoints, prayerPoints, prayerStreak, weeklyIstighfar } from "@/lib/mizan";
 import {
   Dialog,
   DialogContent,
@@ -574,11 +574,11 @@ export function Daily({
               : "Set your first target in My plan",
           },
           {
-            label: "PRAYER STREAK",
-            value: `${prayerStreak(history, date, sixPrayers).current}`,
-            suffix: "days",
+            label: "ISTIGHFAR THIS WEEK",
+            value: `${weeklyIstighfar(history, date)}`,
+            suffix: "",
             icon: Flame,
-            detail: sixPrayers ? "Six prayers, incl. Tahajjud" : "Five obligatory prayers",
+            detail: "Total over the last 7 days",
           },
         ].map((s) => (
           <section className="panel stat-card" key={s.label}>
