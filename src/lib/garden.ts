@@ -8,7 +8,7 @@ export type GardenState = { tasks: GardenTask[]; trees: GardenTree[]; days: stri
 export const HALF = 6;
 /** Forest tiers: reaching each tree count is a level-up. */
 export const TIERS = [1, 10, 50, 100] as const;
-/** Streak upgrades: days in a row with at least one finished task unlock new parts of paradise. */
+/** Permanent upgrades: cumulative positive days unlock new parts of paradise and never take them away. */
 export const UPGRADES = [
   { days: 1, name: "Meadow of flowers" },
   { days: 3, name: "River of clear water" },
@@ -78,7 +78,7 @@ export function unlocked(streakDays: number) {
 }
 
 // ── Journal-driven garden: the 6 prayers and up to 10 targets of each day grow (or wither) the box. ──
-import { commitmentPoints, taskPoints, type Day } from "@/lib/mizan";
+import { commitmentPoints, PRAYER_NAMES, taskPoints, type Day } from "@/lib/mizan";
 
 export const GARDEN_TASK_CAP = 10;
 /** Prayer/target marks plus the same signed daily commitment points used by Balance. */
@@ -93,28 +93,42 @@ export function dayGardenPoints(day: Day) {
   return pts;
 }
 
-/** Whole-history summary: trees = running total (never below 0), withered when today or the total is negative. */
+/** Whole-history summary. Earned trees are a high-water mark: a bad day withers the scene but never deletes old growth. */
 export function journalGarden(history: Record<string, Day>, today: string) {
   const dates = Object.keys(history).sort();
   let total = 0;
+  let highestTotal = 0;
   const goodDays: string[] = [];
   for (const d of dates) {
     const day = history[d];
     if (!day) continue;
     const p = dayGardenPoints(day);
     total = Math.max(0, total + p);
+    highestTotal = Math.max(highestTotal, total);
     if (p > 0) goodDays.push(d);
   }
   const todayPoints = history[today] ? dayGardenPoints(history[today]) : 0;
   return {
-    trees: Math.min(MAX_TREES, total),
+    trees: Math.min(MAX_TREES, highestTotal),
     todayPoints,
     streak: gardenStreak(goodDays, today),
+    growthDays: goodDays.length,
     withered: todayPoints < 0,
   };
 }
 
-/** Prayer-streak days needed to unlock each Heaven tier (tier = index). After the last, one more tier every 365 days, forever. */
+/** Lifetime complete-prayer days drive permanent Heaven growth; the separate daily streak may still restart. */
+export function prayerGrowthDays(history: Record<string, Day>, today: string, includeTahajjud: boolean) {
+  const required = includeTahajjud ? PRAYER_NAMES : PRAYER_NAMES.filter((name) => name !== "Tahajjud");
+  return Object.entries(history).filter(([date, day]) => (
+    date <= today && required.every((name) => {
+      const status = day.prayers.find((prayer) => prayer.name === name)?.status;
+      return status === "On time" || status === "Late";
+    })
+  )).length;
+}
+
+/** Lifetime complete-prayer days needed for each permanent Heaven tier. After the last, one more tier every 365 days. */
 export const HEAVEN_TIERS = [0, 3, 7, 14, 30, 60, 90, 180, 365, 730, 1825, 2555, 3650] as const;
 export const HEAVEN_TIER_NAMES = [
   "Seedling oasis", "Lantern grove", "Fruit gardens", "Domed sanctuary", "Rivers of light", "Highest Firdaus",

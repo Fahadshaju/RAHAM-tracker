@@ -3,7 +3,7 @@ import { lazyWithReload } from "@/lib/lazy-reload";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { Sprout, Skull } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { HELL_TIER_NAMES, heavenTier, heavenTierName, hellDepth, nextHeavenTier, HALF, forestLevel, freeSpot, journalGarden, unlocked, type GardenTree } from "@/lib/garden";
+import { HELL_TIER_NAMES, heavenTier, heavenTierName, hellDepth, nextHeavenTier, HALF, forestLevel, freeSpot, journalGarden, prayerGrowthDays, unlocked, type GardenTree } from "@/lib/garden";
 import { prayerStreak, type Day } from "@/lib/mizan";
 import { StreakHero } from "./streak-hero";
 
@@ -66,6 +66,7 @@ export function JournalGarden({ history, date }: { history: Record<string, Day>;
     return () => window.removeEventListener("raham-settings", read);
   }, []);
   const ps = prayerStreak(history, date, six);
+  const growthDays = prayerGrowthDays(history, date, six);
   const [developmentStage, setDevelopmentStage] = useState<number | null>(null);
   useEffect(() => {
     if (!import.meta.env.DEV) return;
@@ -74,8 +75,8 @@ export function JournalGarden({ history, date }: { history: Record<string, Day>;
     const stage = Number(value);
     if (Number.isInteger(stage) && stage >= 0 && stage <= 12) setDevelopmentStage(stage);
   }, []);
-  const realTier = developmentStage ?? heavenTier(ps.current);
-  const next = nextHeavenTier(ps.current);
+  const realTier = developmentStage ?? heavenTier(growthDays);
+  const next = nextHeavenTier(growthDays);
   const depth = hellDepth(history, date);
   const reached = mounted && ps.current >= goal;
   const [celebrate, setCelebrate] = useState(false);
@@ -96,7 +97,7 @@ export function JournalGarden({ history, date }: { history: Record<string, Day>;
         </Button>
       )}
       <div className="garden-stage">
-      <div className="journal-garden-canvas">{mounted && <Suspense fallback={<div className="garden-preview-loading" role="status">Loading garden…</div>}><GardenScene trees={trees} level={level} upgrades={unlocked(g.streak)} withered={g.withered} tier={realTier} depth={Math.max(1, depth)} /></Suspense>}</div>
+      <div className="journal-garden-canvas">{mounted && <Suspense fallback={<div className="garden-preview-loading" role="status">Loading garden…</div>}><GardenScene trees={trees} level={level} upgrades={unlocked(g.growthDays)} withered={g.withered} tier={realTier} depth={Math.max(1, depth)} /></Suspense>}</div>
       {/* Phones show the streak in its own card above the Prayer tracker (see Daily). */}
       <div className="streak-desktop"><StreakHero history={history} date={date} /></div>
       {celebrate && (

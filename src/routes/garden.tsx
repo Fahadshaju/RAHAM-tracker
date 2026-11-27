@@ -51,7 +51,9 @@ function Garden() {
   const planted = state.trees.length;
   const level = forestLevel(planted);
   const streak = gardenStreak(state.days, today());
-  const ups = unlocked(streak);
+  // Unlocked scenery is permanent; only the displayed current streak can restart.
+  const growthDays = state.days.length;
+  const ups = unlocked(growthDays);
   const nextTier = TIERS.find((t) => t > planted);
   const prevTier = [...TIERS].reverse().find((t) => t <= planted) ?? 0;
   const progress = nextTier ? ((planted - prevTier) / (nextTier - prevTier)) * 100 : 100;
@@ -83,8 +85,8 @@ function Garden() {
       const days = s.days.includes(today()) ? s.days : [...s.days, today()];
       const lvl = forestLevel(trees.length);
       if (lvl > forestLevel(s.trees.length)) celebrate(`Forest level ${lvl} reached`);
-      const u = unlocked(gardenStreak(days, today()));
-      if (u > unlocked(gardenStreak(s.days, today()))) celebrate(`Unlocked: ${UPGRADES[u - 1]?.name}`);
+      const u = unlocked(days.length);
+      if (u > unlocked(s.days.length)) celebrate(`Unlocked: ${UPGRADES[u - 1]?.name}`);
       return { tasks, trees, days };
     });
   }
@@ -121,7 +123,7 @@ function Garden() {
         <div className="garden-bar"><span style={{ width: `${progress}%` }} /></div>
         <p className="garden-sub">
           {nextTier ? `${nextTier - planted} more to level ${level + 1}` : "Your forest is complete"} · Streak {streak} day{streak === 1 ? "" : "s"}
-          {nextUp ? ` · ${nextUp.days - streak} to “${nextUp.name}”` : ""}
+          {nextUp ? ` · ${nextUp.days - growthDays} to “${nextUp.name}”` : ""}
         </p>
 
         <div className="garden-body">
